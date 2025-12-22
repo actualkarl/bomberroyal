@@ -147,6 +147,7 @@ export class PixiRenderer {
   }
 
   // Initialize the ground layer (called once when game starts)
+  // Uses grass texture for all floor tiles (consistent, not random)
   initGround(): void {
     this.layers.ground.removeChildren();
     this.groundSprites.clear();
@@ -154,9 +155,8 @@ export class PixiRenderer {
     for (let y = 0; y < this.gridHeight; y++) {
       for (let x = 0; x < this.gridWidth; x++) {
         const key = `${x},${y}`;
-        // Randomly select a ground variant
-        const variant = Math.floor(Math.random() * this.assets.terrain.ground.length);
-        const sprite = new Sprite(this.assets.terrain.ground[variant]);
+        // Use first grass variant for consistent floor appearance
+        const sprite = new Sprite(this.assets.terrain.grass[0]);
         sprite.x = x * TILE_SIZE;
         sprite.y = y * TILE_SIZE;
         sprite.scale.set(TILE_SIZE / SPRITE_SIZE);
@@ -166,25 +166,34 @@ export class PixiRenderer {
     }
   }
 
-  // Update blocks based on visible cells
-  updateBlocks(visibleCells: { x: number; y: number; type: Cell }[]): void {
-    // Track which blocks should exist
+  // Update blocks based on visible AND explored cells (Starcraft-style fog of war)
+  updateBlocks(
+    visibleCells: { x: number; y: number; type: Cell }[],
+    exploredCells: { x: number; y: number; type: Cell }[] = []
+  ): void {
+    // Track which blocks should exist (both visible and explored)
     const expectedBlocks = new Set<string>();
 
-    for (const { x, y, type } of visibleCells) {
+    // Combine visible and explored cells - visible takes priority
+    const allCells = [...visibleCells, ...exploredCells];
+
+    for (const { x, y, type } of allCells) {
       if (type === 'destructible' || type === 'indestructible') {
         const key = `${x},${y}`;
+
+        // Skip if already processed (visible cells come first, so they take priority)
+        if (expectedBlocks.has(key)) continue;
         expectedBlocks.add(key);
 
         if (!this.blockSprites.has(key)) {
-          // Create new block sprite
+          // Create new block sprite with consistent textures (no random variants)
           let texture: Texture;
           if (type === 'destructible') {
-            const variant = Math.floor(Math.random() * this.assets.items.box.length);
-            texture = this.assets.items.box[variant];
+            // Brown wood for destructible/breakable blocks
+            texture = this.assets.terrain.wood[0];
           } else {
-            const variant = Math.floor(Math.random() * this.assets.terrain.wall.length);
-            texture = this.assets.terrain.wall[variant];
+            // Orange brick (wall) for indestructible walls
+            texture = this.assets.terrain.wall[0];
           }
 
           const sprite = new Sprite(texture);
@@ -197,7 +206,7 @@ export class PixiRenderer {
       }
     }
 
-    // Remove blocks that are no longer present
+    // Remove blocks that are no longer present (not visible AND not explored)
     for (const [key, sprite] of this.blockSprites) {
       if (!expectedBlocks.has(key)) {
         this.layers.blocks.removeChild(sprite);
@@ -519,7 +528,7 @@ export class PixiRenderer {
     }
   }
 
-  // Update fog of war
+  // Update fog of war with smooth gradient edges (Starcraft-style hazy fog)
   updateFog(
     visibleCells: { x: number; y: number; type: Cell }[],
     exploredCells: { x: number; y: number; type: Cell }[]
@@ -532,23 +541,75 @@ export class PixiRenderer {
     const exploredSet = new Set<string>();
     exploredCells.forEach(({ x, y }) => exploredSet.add(`${x},${y}`));
 
+    // Build a distance map from visible cells for smooth falloff
+    const distanceFromVisible: Map<string, number> = new Map();
+
+    // Initialize all cells with max distance
+    for (let y = 0; y < this.gridHeight; y++) {
+      for (let x = 0; x < this.gridWidth; x++) {
+        const key = `${x},${y}`;
+        if (visibleSet.has(key)) {
+          distanceFromVisible.set(key, 0);
+        } else {
+          distanceFromVisible.set(key, Infinity);
+        }
+      }
+    }
+
+    // Calculate minimum distance to any visible cell for each non-visible cell
+    for (let y = 0; y < this.gridHeight; y++) {
+      for (let x = 0; x < this.gridWidth; x++) {
+        const key = `${x},${y}`;
+        if (visibleSet.has(key)) continue;
+
+        let minDist = Infinity;
+        for (const visible of visibleCells) {
+          // Use Euclidean distance for smooth circular falloff
+          const dx = x - visible.x;
+          const dy = y - visible.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < minDist) minDist = dist;
+        }
+        distanceFromVisible.set(key, minDist);
+      }
+    }
+
     this.fogGraphics.clear();
+
+    // Fog transition parameters
+    const transitionStart = 0.5;  // Start fading at this distance from visible
+    const transitionEnd = 2.5;    // Fully fogged at this distance
+    const exploredMaxAlpha = 0.55; // Max fog alpha for explored cells
+    const unexploredMaxAlpha = 0.92; // Max fog alpha for unexplored cells
 
     for (let y = 0; y < this.gridHeight; y++) {
       for (let x = 0; x < this.gridWidth; x++) {
         const key = `${x},${y}`;
 
-        if (!visibleSet.has(key)) {
-          if (exploredSet.has(key)) {
-            // Previously seen - grey fog
-            this.fogGraphics.rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            this.fogGraphics.fill({ color: 0x000000, alpha: 0.6 });
-          } else {
-            // Never seen - black fog
-            this.fogGraphics.rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            this.fogGraphics.fill({ color: 0x000000, alpha: 0.9 });
-          }
+        if (visibleSet.has(key)) continue; // No fog on visible cells
+
+        const dist = distanceFromVisible.get(key) || Infinity;
+        const isExplored = exploredSet.has(key);
+        const maxAlpha = isExplored ? exploredMaxAlpha : unexploredMaxAlpha;
+
+        // Calculate fog alpha based on distance (smooth gradient)
+        let alpha: number;
+        if (dist <= transitionStart) {
+          // Very close to visible - light fog
+          alpha = maxAlpha * 0.3;
+        } else if (dist >= transitionEnd) {
+          // Far from visible - full fog
+          alpha = maxAlpha;
+        } else {
+          // Transition zone - smooth interpolation
+          const t = (dist - transitionStart) / (transitionEnd - transitionStart);
+          // Use smooth step for nicer falloff
+          const smoothT = t * t * (3 - 2 * t);
+          alpha = maxAlpha * (0.3 + 0.7 * smoothT);
         }
+
+        this.fogGraphics.rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        this.fogGraphics.fill({ color: 0x000000, alpha });
       }
     }
   }

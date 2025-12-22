@@ -13,7 +13,7 @@ import {
   getDirectionToward,
   distance,
   getAdjacentDestructibles,
-  countEscapeRoutes,
+  canSafelyPlaceBomb,
 } from '../Pathfinding.js';
 
 /**
@@ -51,10 +51,9 @@ export const BlitzPersonality: BotPersonalityHandler = {
     if (target) {
       const dist = distance(botPos, target.position);
 
-      // If close, drop a bomb!
+      // If close, drop a bomb! But only if we can safely escape
       if (dist <= 3 && currentBombCount < player.maxBombs) {
-        const escapeCount = countEscapeRoutes(botPos, gameView);
-        if (escapeCount >= 1) {
+        if (canSafelyPlaceBomb(botPos, player.blastRadius, gameView, dangerTiles)) {
           bot.state = 'bombing';
           return { type: 'place_bomb' };
         }
@@ -75,8 +74,7 @@ export const BlitzPersonality: BotPersonalityHandler = {
     if (currentBombCount < player.maxBombs) {
       const adjacentBlocks = getAdjacentDestructibles(botPos, gameView);
       if (adjacentBlocks.length > 0) {
-        const escapeCount = countEscapeRoutes(botPos, gameView);
-        if (escapeCount >= 1) {
+        if (canSafelyPlaceBomb(botPos, player.blastRadius, gameView, dangerTiles)) {
           bot.state = 'bombing';
           return { type: 'place_bomb' };
         }

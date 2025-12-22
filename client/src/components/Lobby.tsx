@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { UseSocketReturn } from '../hooks/useSocket';
 import { Player } from '@bomberroyal/shared';
+import { startAssetPreload } from '../hooks/useAssetPreload';
 
 interface LobbyProps {
   socketState: UseSocketReturn;
@@ -7,6 +9,11 @@ interface LobbyProps {
 
 function Lobby({ socketState }: LobbyProps) {
   const { room, playerId, leaveRoom, setReady, startGame, addBots, removeBots, error } = socketState;
+
+  // Start preloading game assets when entering lobby
+  useEffect(() => {
+    startAssetPreload();
+  }, []);
 
   if (!room || !playerId) return null;
 

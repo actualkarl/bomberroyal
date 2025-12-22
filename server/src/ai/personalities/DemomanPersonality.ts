@@ -12,8 +12,9 @@ import {
   getDirectionToward,
   distance,
   getAdjacentDestructibles,
-  countEscapeRoutes,
+  canSafelyPlaceBomb,
 } from '../Pathfinding.js';
+
 
 /**
  * DEMOMAN - The Mad Bomber
@@ -51,8 +52,7 @@ export const DemomanPersonality: BotPersonalityHandler = {
       const playerClose = nearbyPlayer && distance(botPos, nearbyPlayer.position) <= 3;
 
       if (adjacentDestructibles.length > 0 || playerClose) {
-        const escapeCount = countEscapeRoutes(botPos, gameView);
-        if (escapeCount >= 1) {
+        if (canSafelyPlaceBomb(botPos, player.blastRadius, gameView, dangerTiles)) {
           bot.state = 'bombing';
           return { type: 'place_bomb' };
         }

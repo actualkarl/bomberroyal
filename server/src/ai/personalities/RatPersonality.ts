@@ -13,7 +13,7 @@ import {
   findPath,
   getDirectionToward,
   distance,
-  countEscapeRoutes,
+  canSafelyPlaceBomb,
   getAdjacentDestructibles,
   getAdjacentWalkable,
 } from '../Pathfinding.js';
@@ -48,8 +48,7 @@ export const RatPersonality: BotPersonalityHandler = {
     // Priority 1: If player is VERY close (< 3), drop defensive bomb and flee
     if (nearestPlayer && nearestPlayerDist < 3) {
       if (currentBombCount < player.maxBombs) {
-        const escapes = countEscapeRoutes(botPos, gameView);
-        if (escapes >= 1) {
+        if (canSafelyPlaceBomb(botPos, player.blastRadius, gameView, dangerTiles)) {
           bot.state = 'bombing';
           return { type: 'place_bomb' };
         }
@@ -98,8 +97,7 @@ export const RatPersonality: BotPersonalityHandler = {
     if (currentBombCount < player.maxBombs) {
       const adjacentBlocks = getAdjacentDestructibles(botPos, gameView);
       if (adjacentBlocks.length > 0) {
-        const escapes = countEscapeRoutes(botPos, gameView);
-        if (escapes >= 1) {
+        if (canSafelyPlaceBomb(botPos, player.blastRadius, gameView, dangerTiles)) {
           bot.state = 'bombing';
           return { type: 'place_bomb' };
         }
@@ -136,8 +134,7 @@ export const RatPersonality: BotPersonalityHandler = {
     if (weakTarget && isDistracted(weakTarget, gameView)) {
       const dist = distance(botPos, weakTarget.position);
       if (dist <= 3 && currentBombCount < player.maxBombs) {
-        const escapes = countEscapeRoutes(botPos, gameView);
-        if (escapes >= 1) {
+        if (canSafelyPlaceBomb(botPos, player.blastRadius, gameView, dangerTiles)) {
           bot.state = 'hunting';
           return { type: 'place_bomb' };
         }

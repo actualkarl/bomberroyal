@@ -156,6 +156,55 @@ export function countEscapeRoutes(pos: Position, gameView: BotGameView): number 
   return neighbors.filter(n => isWalkable(n.x, n.y, gameView)).length;
 }
 
+// Check if bot can safely place a bomb and escape
+// This simulates the bomb blast and checks if there's a safe tile to flee to
+export function canSafelyPlaceBomb(
+  pos: Position,
+  blastRadius: number,
+  gameView: BotGameView,
+  existingDangerTiles: Set<string>
+): boolean {
+  // Calculate danger tiles if we place a bomb here
+  const simulatedDanger = new Set(existingDangerTiles);
+
+  // Add the bomb position
+  simulatedDanger.add(`${pos.x},${pos.y}`);
+
+  // Add explosion cross pattern
+  const directions = [
+    { x: 1, y: 0 },
+    { x: -1, y: 0 },
+    { x: 0, y: 1 },
+    { x: 0, y: -1 },
+  ];
+
+  for (const dir of directions) {
+    for (let i = 1; i <= blastRadius; i++) {
+      const x = pos.x + dir.x * i;
+      const y = pos.y + dir.y * i;
+
+      if (x < 0 || x >= gameView.gridWidth || y < 0 || y >= gameView.gridHeight) {
+        break;
+      }
+
+      const cell = gameView.grid[y]?.[x];
+      if (cell === 'indestructible') break;
+
+      simulatedDanger.add(`${x},${y}`);
+
+      if (cell === 'destructible') break;
+    }
+  }
+
+  // Check if there's a safe tile to escape to
+  const safeTile = findNearestSafeTile(pos, simulatedDanger, gameView);
+  if (!safeTile) return false;
+
+  // Check if we can actually path to the safe tile
+  const path = findPath(pos, safeTile, gameView, simulatedDanger);
+  return path.length > 1;
+}
+
 // Count adjacent walls/blocks
 export function countAdjacentWalls(pos: Position, gameView: BotGameView): number {
   const neighbors = [

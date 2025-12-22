@@ -2,9 +2,9 @@
 
 ## Project Status
 
-**Current Phase:** Graphics Complete (PixiJS rendering with sprites and animations)
+**Current Phase:** Visual Polish & Bug Fixes
 **Last Updated:** 2025-12-22
-**Last Session:** Implemented PixiJS graphics upgrade - sprite-based rendering, animations, screen shake, spectator mode
+**Last Session:** Improved map design, fog of war rendering, and bot AI safety
 
 ## What Exists
 
@@ -30,6 +30,13 @@
 - [x] **Animated explosion effects**
 - [x] **Screen shake on explosions**
 - [x] **Spectator mode (zoom, pan, fog removal)**
+- [x] **Automated testing infrastructure** (see game-docs/TESTING.md)
+- [x] **142 unit tests** (Grid, Bomb, Abilities, FogOfWar, ShrinkZone, Bot AI)
+- [x] **E2E tests** (Playwright for UI flows)
+- [x] **Bot stress testing** (simulated bot games)
+- [x] **Consistent Bomberman-style map design** (grass floor, brick walls, wood blocks)
+- [x] **Smooth gradient fog of war** (hazy horizon effect, not hard edges)
+- [x] **Asset preloading in lobby** (faster game start)
 
 ### Not Yet Implemented
 - [ ] Sound effects and music
@@ -135,6 +142,15 @@
 | All TypeScript interfaces | `shared/src/types.ts` |
 | Game constants/config | `shared/src/constants.ts` |
 
+### Tests
+| Purpose | Location |
+|---------|----------|
+| Unit tests (142 tests) | `server/tests/*.test.ts` |
+| E2E tests (Playwright) | `client/tests/e2e/*.spec.ts` |
+| Bot stress test script | `server/scripts/stress-test.ts` |
+| Vitest config | `server/vitest.config.ts` |
+| Playwright config | `client/playwright.config.ts` |
+
 ---
 
 ## Design Philosophy
@@ -155,7 +171,15 @@
 - Line-of-sight raycasting (Bresenham's algorithm)
 - 5-tile default radius (upgradeable with Eagle Eye)
 - Starcraft-style memory: explored cells stay visible but dimmed
+- **Smooth gradient fog**: distance-based alpha with smoothstep interpolation
+- Explored cells render terrain underneath dim overlay (true Starcraft-style)
 - Bombs: hidden → audio range (3 tiles) → warning (1 sec) → explosion visible
+
+### Map Design
+- **Consistent textures**: grass (floor), brick (indestructible), wood (destructible)
+- Classic Bomberman layout: border walls + pillar grid pattern
+- 4 corner spawn zones with safe areas (3 tiles each)
+- ~70% destructible block coverage for balanced gameplay
 
 ### Server Authority
 - All game logic runs on server
@@ -228,6 +252,21 @@ npm run build --workspace=server
 
 # Build client only
 npm run build --workspace=client
+
+# Run unit tests
+npm test
+
+# Run unit tests with coverage
+npm run test:coverage
+
+# Run E2E tests (requires dev server running)
+npm run test:e2e
+
+# Run bot stress test (50 games)
+npm run stress-test
+
+# Run overnight stress test (1000 games)
+npm run stress-test:overnight
 ```
 
 ---
@@ -249,6 +288,8 @@ npm run build --workspace=client
 - **Layered rendering:** ground → items → blocks → bombs → players → explosions → shrink → fog
 - **Assets:** Minerman Adventure sprite pack in `client/public/assets/`
 - **Animation speeds:** idle (0.08), walk (0.15), death (0.12), bomb (0.1/0.3), explosion (0.2)
+- **Terrain textures:** grass.png (floor), wall.png (indestructible), wood.png (destructible)
+- **Fog rendering:** Smooth gradient using distance-from-visible calculation with smoothstep
 
 ### Room Codes
 - 6 alphanumeric characters (excludes confusing chars like 0/O, 1/I/L)
@@ -265,7 +306,6 @@ npm run build --workspace=client
 
 ## Known Issues
 
-- Bot behavior may need further tuning (recently made more aggressive)
 - Not yet tested in production environment
 - Multiplayer not tested over real network (only localhost)
 - No reconnection handling if player disconnects

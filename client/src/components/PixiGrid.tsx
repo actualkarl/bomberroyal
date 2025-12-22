@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Application } from 'pixi.js';
 import { Cell, Player, VisibleBomb, Explosion, PowerUpDrop, ShrinkZone } from '@bomberroyal/shared';
-import { loadAssets, LoadedAssets, PixiRenderer, TILE_SIZE } from '../rendering';
+import { LoadedAssets, PixiRenderer, TILE_SIZE } from '../rendering';
+import { useAssetPreload } from '../hooks/useAssetPreload';
 
 interface PixiGridProps {
   visibleCells: { x: number; y: number; type: Cell }[];
@@ -40,20 +41,23 @@ function PixiGrid({
   const appRef = useRef<Application | null>(null);
   const rendererRef = useRef<PixiRenderer | null>(null);
   const assetsRef = useRef<LoadedAssets | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [pixiReady, setPixiReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const groundInitialized = useRef(false);
 
-  // Initialize PixiJS application
+  // Use preloaded assets from lobby
+  const { loading: assetsLoading, error: assetsError, assets: preloadedAssets } = useAssetPreload();
+
+  // Initialize PixiJS application once assets are ready
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || assetsLoading || !preloadedAssets) return;
 
     let mounted = true;
 
     const init = async () => {
       try {
-        // Load assets first
-        const assets = await loadAssets();
+        // Use cached assets
+        const assets = preloadedAssets;
         if (!mounted) return;
         assetsRef.current = assets;
 
@@ -66,6 +70,7 @@ function PixiGrid({
           antialias: false, // Pixel art should be crisp
           resolution: window.devicePixelRatio || 1,
           autoDensity: true,
+          preference: 'webgl', // Force WebGL instead of WebGPU
         });
 
         if (!mounted) {
@@ -82,7 +87,7 @@ function PixiGrid({
         renderer.setGridSize(gridWidth, gridHeight);
         rendererRef.current = renderer;
 
-        setLoading(false);
+        setPixiReady(true);
       } catch (err) {
         console.error('Failed to initialize PixiJS:', err);
         if (mounted) {
@@ -104,7 +109,10 @@ function PixiGrid({
       }
       groundInitialized.current = false;
     };
-  }, [gridWidth, gridHeight]);
+  }, [gridWidth, gridHeight, assetsLoading, preloadedAssets]);
+
+  // Combined loading state
+  const loading = assetsLoading || !pixiReady;
 
   // Update renderer when game state changes
   useEffect(() => {
@@ -118,7 +126,7 @@ function PixiGrid({
     }
 
     // Update all layers
-    renderer.updateBlocks(visibleCells);
+    renderer.updateBlocks(visibleCells, exploredCells);
     renderer.updatePlayers(players, self);
     renderer.updateBombs(bombs);
     renderer.updateExplosions(explosions);
@@ -179,56 +187,42 @@ function PixiGrid({
     }
   }, [gamePhase, winnerId, loading]);
 
-  if (error) {
-    return (
-      <div
-        style={{
-          width: gridWidth * TILE_SIZE,
-          height: gridHeight * TILE_SIZE,
-          backgroundColor: '#1a1a2e',
-          border: '2px solid #3742fa',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#ff4757',
-          flexDirection: 'column',
-          gap: '10px',
-        }}
-      >
-        <p>Graphics Error</p>
-        <p style={{ fontSize: '12px', color: '#888' }}>{error}</p>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div
-        style={{
-          width: gridWidth * TILE_SIZE,
-          height: gridHeight * TILE_SIZE,
-          backgroundColor: '#1a1a2e',
-          border: '2px solid #3742fa',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#3742fa',
-        }}
-      >
-        Loading sprites...
-      </div>
-    );
-  }
+  const displayError = error || assetsError;
 
   return (
     <div
       ref={containerRef}
       style={{
+        width: gridWidth * TILE_SIZE,
+        height: gridHeight * TILE_SIZE,
         border: '2px solid #3742fa',
         boxShadow: '0 0 20px rgba(55, 66, 250, 0.3)',
         overflow: 'hidden',
+        backgroundColor: '#1a1a2e',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
-    />
+    >
+      {displayError && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#ff4757',
+            flexDirection: 'column',
+            gap: '10px',
+          }}
+        >
+          <p>Graphics Error</p>
+          <p style={{ fontSize: '12px', color: '#888' }}>{displayError}</p>
+        </div>
+      )}
+      {!displayError && loading && (
+        <span style={{ color: '#3742fa' }}>Loading sprites...</span>
+      )}
+    </div>
   );
 }
 

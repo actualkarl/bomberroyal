@@ -2,6 +2,46 @@
 
 All notable changes to Bomberman Battle Royale.
 
+## [0.2.1] - 2025-12-22 - Visual Polish & Bug Fixes
+
+### Added
+
+**Map Design Improvements**
+- Consistent Bomberman-style terrain textures
+  - Green grass for floor/walkable tiles
+  - Orange brick for indestructible walls
+  - Brown wood for destructible blocks
+- Classic map layout with border walls and pillar grid pattern
+- No more random texture selection - each tile type uses one consistent texture
+
+**Smooth Fog of War**
+- Replaced hard-edged rectangular fog with smooth gradient falloff
+- Distance-based alpha calculation from visible cells
+- Smoothstep interpolation for natural hazy horizon effect
+- Explored cells now render terrain underneath the dim fog overlay (true Starcraft-style)
+- Transition zone: fog fades smoothly from 0.5 to 2.5 tiles from visible area
+
+**Asset Preloading**
+- Assets now preload in lobby while waiting for players
+- Faster game start when countdown begins
+- Loading indicator in lobby shows preload status
+
+### Fixed
+
+**Bot AI Safety**
+- Bots no longer kill themselves by placing bombs without escape routes
+- New `canSafelyPlaceBomb()` function simulates bomb blast and verifies escape path exists
+- All 3 bot personalities (Blitz, Demoman, Rat) updated to use safe bomb placement
+
+### Technical
+
+- Added wood.png terrain texture to asset loader
+- PixiRenderer.updateBlocks() now accepts both visible and explored cells
+- Fog calculation uses Euclidean distance for circular falloff
+- New useAssetPreload hook for lobby asset caching
+
+---
+
 ## [0.2.0] - 2025-12-22 - Graphics Upgrade
 
 ### Added
@@ -154,5 +194,6 @@ All notable changes to Bomberman Battle Royale.
 
 | Version | Date | Summary |
 |---------|------|---------|
+| 0.2.1 | 2025-12-22 | Visual Polish - Map design, smooth fog, bot AI fixes |
 | 0.2.0 | 2025-12-22 | Graphics Upgrade - PixiJS rendering, sprites, animations |
 | 0.1.0 | 2025-12-22 | MVP Alpha - Core mechanics, abilities, bots, fog of war |
