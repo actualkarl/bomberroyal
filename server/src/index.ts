@@ -84,19 +84,6 @@ setupSocketHandlers(io);
 if (isProduction) {
   const clientDistPath = path.join(__dirname, '../../client/dist');
 
-  console.log('__dirname:', __dirname);
-  console.log('clientDistPath:', clientDistPath);
-
-  // Check if client dist exists
-  import('fs').then(fs => {
-    if (fs.existsSync(clientDistPath)) {
-      console.log('Client dist folder EXISTS');
-      console.log('Contents:', fs.readdirSync(clientDistPath));
-    } else {
-      console.log('Client dist folder NOT FOUND');
-    }
-  });
-
   // Serve static assets
   app.use(express.static(clientDistPath));
 
