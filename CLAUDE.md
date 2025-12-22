@@ -2,9 +2,9 @@
 
 ## Project Status
 
-**Current Phase:** Visual Polish & Bug Fixes
+**Current Phase:** Production Ready
 **Last Updated:** 2025-12-22
-**Last Session:** Improved map design, fog of war rendering, and bot AI safety
+**Last Session:** Added Railway deployment configuration
 
 ## What Exists
 
@@ -37,12 +37,45 @@
 - [x] **Consistent Bomberman-style map design** (grass floor, brick walls, wood blocks)
 - [x] **Smooth gradient fog of war** (hazy horizon effect, not hard edges)
 - [x] **Asset preloading in lobby** (faster game start)
+- [x] **Railway deployment ready** (production configuration)
 
 ### Not Yet Implemented
 - [ ] Sound effects and music
 - [ ] Particle effects (beyond explosions)
 - [ ] Reconnection handling
 - [ ] Mobile touch controls
+
+---
+
+## Deployment
+
+### Railway Deployment
+
+1. Push code to GitHub
+2. Go to [railway.app](https://railway.app)
+3. Click "New Project" → "Deploy from GitHub repo"
+4. Select `bomberroyal` repository
+5. Add environment variable: `NODE_ENV` = `production`
+6. Deploy
+
+### Local Production Test
+
+```bash
+# Build everything
+npm run build
+
+# Run in production mode
+NODE_ENV=production npm start
+
+# Open http://localhost:3001
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| NODE_ENV | development | Set to `production` for deployment |
+| PORT | 3001 | Server port |
 
 ---
 
@@ -306,7 +339,6 @@ npm run stress-test:overnight
 
 ## Known Issues
 
-- Not yet tested in production environment
 - Multiplayer not tested over real network (only localhost)
 - No reconnection handling if player disconnects
 

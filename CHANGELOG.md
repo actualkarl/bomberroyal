@@ -2,6 +2,27 @@
 
 All notable changes to Bomberman Battle Royale.
 
+## [0.3.0] - 2025-12-22 - Production Ready
+
+### Added
+
+**Railway Deployment Support**
+- Server serves static files in production mode
+- Dynamic socket URL (same origin in production, localhost in dev)
+- CORS configuration for both environments
+- Railway configuration file (railway.json)
+- Node.js version specification (.nvmrc)
+
+### Technical
+
+- Client socket connection uses `import.meta.env.PROD` to detect environment
+- Server uses `express.static()` to serve client build in production
+- SPA fallback route for client-side routing
+- Updated build order: shared → client → server (client must build first)
+- Added `npm start` script for production
+
+---
+
 ## [0.2.1] - 2025-12-22 - Visual Polish & Bug Fixes
 
 ### Added
@@ -194,6 +215,7 @@ All notable changes to Bomberman Battle Royale.
 
 | Version | Date | Summary |
 |---------|------|---------|
+| 0.3.0 | 2025-12-22 | Production Ready - Railway deployment configuration |
 | 0.2.1 | 2025-12-22 | Visual Polish - Map design, smooth fog, bot AI fixes |
 | 0.2.0 | 2025-12-22 | Graphics Upgrade - PixiJS rendering, sprites, animations |
 | 0.1.0 | 2025-12-22 | MVP Alpha - Core mechanics, abilities, bots, fog of war |

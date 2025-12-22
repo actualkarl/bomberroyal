@@ -2,6 +2,8 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import {
   ClientToServerEvents,
   ServerToClientEvents,
@@ -9,19 +11,34 @@ import {
 import { createRoom, getRoomInfo } from './rooms.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 
+// ES module dirname workaround
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 const httpServer = createServer(app);
+
+// Determine if we're in production
+const isProduction = process.env.NODE_ENV === 'production';
 
 // Socket.io with typed events
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: isProduction
+      ? true  // Same origin in production
+      : ['http://localhost:5173', 'http://localhost:3001'],
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: isProduction
+    ? true
+    : ['http://localhost:5173', 'http://localhost:3001'],
+  credentials: true,
+}));
 app.use(express.json());
 
 // Health check
@@ -63,8 +80,28 @@ app.get('/api/rooms/:code', (req, res) => {
 // Setup socket handlers
 setupSocketHandlers(io);
 
+// Serve static files in production
+if (isProduction) {
+  const clientDistPath = path.join(__dirname, '../../client/dist');
+
+  // Serve static assets
+  app.use(express.static(clientDistPath));
+
+  // SPA fallback - all non-API routes serve index.html
+  app.get('*', (req, res, next) => {
+    // Skip API and socket.io routes
+    if (req.path.startsWith('/api') || req.path.startsWith('/socket.io') || req.path === '/health') {
+      return next();
+    }
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
+
 // Start server
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  if (isProduction) {
+    console.log('Production mode: serving static files from client/dist');
+  }
 });

@@ -40,6 +40,16 @@ export interface UseSocketReturn {
   removeBots: () => void;
 }
 
+// Determine server URL based on environment
+const getServerUrl = () => {
+  // In production, connect to same origin (Railway serves both client and server)
+  if (import.meta.env.PROD) {
+    return window.location.origin;
+  }
+  // In development, connect to local server
+  return 'http://localhost:3001';
+};
+
 export function useSocket(): UseSocketReturn {
   const socketRef = useRef<TypedSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -51,8 +61,8 @@ export function useSocket(): UseSocketReturn {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const socket: TypedSocket = io('http://localhost:3001', {
-      transports: ['websocket'],
+    const socket: TypedSocket = io(getServerUrl(), {
+      transports: ['websocket', 'polling'], // polling as fallback for production
     });
 
     socketRef.current = socket;
