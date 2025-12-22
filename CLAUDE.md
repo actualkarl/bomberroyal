@@ -2,9 +2,9 @@
 
 ## Project Status
 
-**Current Phase:** MVP Alpha (mechanics complete, graphics upgrade planned next)
+**Current Phase:** Graphics Complete (PixiJS rendering with sprites and animations)
 **Last Updated:** 2025-12-22
-**Last Session:** Made bots more active - all personalities now aggressively collect power-ups, reduced decision throttle to 100ms
+**Last Session:** Implemented PixiJS graphics upgrade - sprite-based rendering, animations, screen shake, spectator mode
 
 ## What Exists
 
@@ -24,11 +24,16 @@
 - [x] 3 bot personalities with A* pathfinding
 - [x] Audio event system (for future sound implementation)
 - [x] Game over screen with stats
+- [x] **PixiJS sprite-based graphics**
+- [x] **Animated player sprites (idle, walk, death, win)**
+- [x] **Animated bomb fuse with warning state**
+- [x] **Animated explosion effects**
+- [x] **Screen shake on explosions**
+- [x] **Spectator mode (zoom, pan, fog removal)**
 
 ### Not Yet Implemented
 - [ ] Sound effects and music
-- [ ] Sprite-based graphics (currently CSS)
-- [ ] Animations and particle effects
+- [ ] Particle effects (beyond explosions)
 - [ ] Reconnection handling
 - [ ] Mobile touch controls
 
@@ -107,12 +112,22 @@
 | Room create/join | `client/src/components/Home.tsx` |
 | Waiting room, bot controls | `client/src/components/Lobby.tsx` |
 | Main game container | `client/src/components/Game.tsx` |
-| Grid renderer (CSS-based) | `client/src/components/Grid.tsx` |
+| **PixiJS game renderer** | `client/src/components/PixiGrid.tsx` |
+| Grid renderer (CSS, legacy) | `client/src/components/Grid.tsx` |
 | Ability choice modal | `client/src/components/PowerUpModal.tsx` |
 | Results screen | `client/src/components/GameOver.tsx` |
 | Socket.io + state | `client/src/hooks/useSocket.ts` |
 | Keyboard input handling | `client/src/hooks/useInput.ts` |
 | Vite config (proxy setup) | `client/vite.config.ts` |
+
+### Client - Rendering Module
+| Purpose | Location |
+|---------|----------|
+| Sprite sheet loading | `client/src/rendering/AssetLoader.ts` |
+| Main renderer orchestration | `client/src/rendering/PixiRenderer.ts` |
+| Spectator camera controls | `client/src/rendering/SpectatorCamera.ts` |
+| Screen shake effect | `client/src/rendering/effects/ScreenShake.ts` |
+| Module exports | `client/src/rendering/index.ts` |
 
 ### Shared
 | Purpose | Location |
@@ -176,10 +191,10 @@ Quick steps:
 
 ## Next Planned Work
 
-1. **Graphics upgrade (PixiJS)** - Replace CSS rendering with sprite-based graphics
-2. **Sound effects** - Implement audio using the existing event system
-3. **Animations** - Explosion effects, death animations, power-up particles
-4. **Production deployment** - Railway or similar platform
+1. **Sound effects** - Implement audio using the existing event system
+2. **Particle effects** - Power-up collect particles, death particles
+3. **Production deployment** - Railway or similar platform
+4. **Mobile touch controls** - Virtual joystick and buttons
 
 ---
 
@@ -225,9 +240,15 @@ npm run build --workspace=client
 - Vite proxies `/api` and `/socket.io` to server
 
 ### Dependencies
-- Client: React 18, Socket.io-client, Vite
+- Client: React 18, Socket.io-client, Vite, **PixiJS 8.x**
 - Server: Express, Socket.io, CORS, Pathfinding
 - Shared: TypeScript types only
+
+### Rendering
+- **PixiJS WebGL renderer** with 64x64 tile size (sprites scaled 2x from 32x32)
+- **Layered rendering:** ground → items → blocks → bombs → players → explosions → shrink → fog
+- **Assets:** Minerman Adventure sprite pack in `client/public/assets/`
+- **Animation speeds:** idle (0.08), walk (0.15), death (0.12), bomb (0.1/0.3), explosion (0.2)
 
 ### Room Codes
 - 6 alphanumeric characters (excludes confusing chars like 0/O, 1/I/L)

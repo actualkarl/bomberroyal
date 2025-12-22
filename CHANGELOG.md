@@ -2,6 +2,64 @@
 
 All notable changes to Bomberman Battle Royale.
 
+## [0.2.0] - 2025-12-22 - Graphics Upgrade
+
+### Added
+
+**PixiJS Rendering Engine**
+- Replaced CSS-based grid rendering with PixiJS WebGL renderer
+- Sprite-based graphics using Minerman Adventure asset pack
+- Layered rendering system (ground, blocks, items, bombs, players, explosions, fog, shrink zone)
+
+**Player Animations**
+- 4-directional idle animations
+- 4-directional walk animations
+- Death animation (plays once when killed)
+- Win animation (loops for winner)
+- Color tinting for 4 distinct player colors
+
+**Bomb Animations**
+- Animated dynamite fuse effect
+- Warning state: faster animation + red tint in final second
+- Smooth position updates for kicked bombs
+
+**Explosion Effects**
+- 8-frame animated explosion sprites
+- Explosions render on all affected cells (cross pattern)
+- Screen shake triggered on every explosion
+
+**Visual Effects**
+- Randomized ground tile variants for visual variety
+- Randomized destructible block variants (wooden crates)
+- Multiple wall texture variants for indestructible blocks
+- Colored circle icons for power-ups (color-coded by type)
+- Fog of war overlay (black = unseen, grey = explored)
+- Pulsing shrink zone overlay with danger/warning colors
+
+**Spectator Mode**
+- Activated when player dies during gameplay
+- Scroll wheel zoom (0.3x to 1.0x)
+- Click and drag panning
+- Fog of war removed for full map visibility
+
+### Changed
+
+- Game tile size increased from 40px to 64px (sprites scaled 2x from 32px)
+- useInput hook now exposes currentDirection and isMoving for animation sync
+
+### Technical
+
+- Added PixiJS 8.x dependency
+- New rendering module: `client/src/rendering/`
+  - AssetLoader.ts: Sprite sheet loading and frame extraction
+  - PixiRenderer.ts: Main rendering orchestration
+  - SpectatorCamera.ts: Dead player camera controls
+  - ScreenShake.ts: Explosion screen shake effect
+- Assets copied to `client/public/assets/` for serving
+- PixiGrid component replaces Grid component
+
+---
+
 ## [0.1.0] - 2025-12-22 - MVP Alpha
 
 ### Added
@@ -96,4 +154,5 @@ All notable changes to Bomberman Battle Royale.
 
 | Version | Date | Summary |
 |---------|------|---------|
+| 0.2.0 | 2025-12-22 | Graphics Upgrade - PixiJS rendering, sprites, animations |
 | 0.1.0 | 2025-12-22 | MVP Alpha - Core mechanics, abilities, bots, fog of war |
