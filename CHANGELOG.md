@@ -1,0 +1,99 @@
+# Changelog
+
+All notable changes to Bomberman Battle Royale.
+
+## [0.1.0] - 2025-12-22 - MVP Alpha
+
+### Added
+
+**Core Gameplay**
+- Room creation with 6-character alphanumeric codes
+- Room joining via code entry
+- Lobby system with ready states
+- 15x13 grid with spawn safe zones (4 corners)
+- WASD/Arrow key movement with 100ms throttle
+- Server-side movement validation and collision detection
+- Bomb placement with Spacebar (250ms cooldown)
+- 3-second bomb fuse timer (upgradeable with Quick Fuse)
+- Cross-pattern explosion spread
+- Chain reactions (bombs trigger adjacent bombs)
+- Destructible block destruction (30% power-up drop chance)
+- Player death on explosion contact
+- Kill credit tracking for stats
+
+**Ability System (9 abilities)**
+- Bomb Count: +1 max bombs per level (up to 4)
+- Blast Radius: +1 tile per level (up to 4)
+- Bomb Kick: Kick bombs 1/2/unlimited tiles
+- Remote Detonate: Detonate own bombs / any bomb in line of sight
+- Speed: +15% per level (up to +45%)
+- Shield: Survive one hit (consumed on use)
+- Piercing Bomb: Explosions pass through destructible blocks
+- Eagle Eye: +3 fog radius per level (up to +6)
+- Quick Fuse: -500ms per level (minimum 1500ms)
+
+**Roguelike Power-Up System**
+- Power-ups spawn from destroyed blocks (30% chance)
+- Choice UI presents 3 random ability options
+- Only upgradeable abilities shown (maxed out = not offered)
+- Stacking mechanics for incremental abilities
+
+**Fog of War**
+- 5-tile default visibility radius
+- Line-of-sight blocking (walls interrupt vision)
+- Starcraft-style memory (explored cells dimmed but visible)
+- Bomb visibility: hidden → audio range → warning → exploding
+- All explosions visible regardless of fog
+
+**Battle Royale Zone**
+- 60-second grace period before shrinking
+- Zone shrinks every 10 seconds
+- Shrinks 1 cell per edge simultaneously
+- Instant death in shrink zone (no shield protection)
+- Visual red border indicating danger zone
+
+**AI Bot System**
+- 3 personalities: Blitz, Demoman, Rat
+- A* pathfinding using `pathfinding` library
+- Danger zone awareness and fleeing
+- Power-up collection behavior
+- Player hunting/avoidance based on personality
+- 100ms decision throttle (10 decisions/second)
+- Bot management in lobby (add/remove)
+
+**UI Components**
+- Home screen (create/join room)
+- Lobby with player list and ready states
+- Game board with CSS-based rendering
+- Power-up choice modal
+- Game over screen with stats table
+
+**Audio System (Backend Only)**
+- Audio event broadcasting infrastructure
+- Event types: bomb_placed, bomb_tick, bomb_warning, explosion, player_death, powerup_collect
+- Position and direction data for stereo panning
+
+### Technical
+
+- Monorepo with npm workspaces (client/server/shared)
+- React 18 with TypeScript and Vite
+- Node.js with Express and Socket.io
+- 20 ticks/second server game loop
+- Fog-filtered state broadcast per player
+- Shared TypeScript types between client and server
+
+### Known Issues
+
+- Bot behavior may need tuning (recently made more aggressive)
+- Not tested in production environment
+- Multiplayer not tested over real network
+- No reconnection handling for disconnected players
+- Graphics are CSS-based (sprite upgrade planned)
+
+---
+
+## Version History
+
+| Version | Date | Summary |
+|---------|------|---------|
+| 0.1.0 | 2025-12-22 | MVP Alpha - Core mechanics, abilities, bots, fog of war |

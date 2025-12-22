@@ -1,0 +1,125 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-dark: #1a1a2e;
+  --bg-darker: #16162a;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0c0;
+  --accent-primary: #ff4757;
+  --accent-secondary: #3742fa;
+  --player-red: #ff4757;
+  --player-blue: #3742fa;
+  --player-green: #2ed573;
+  --player-yellow: #ffa502;
+  --success: #2ed573;
+  --error: #ff4757;
+}
+
+body {
+  font-family: 'Press Start 2P', monospace;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+button {
+  font-family: 'Press Start 2P', monospace;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+button:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+button.secondary {
+  background: var(--accent-secondary);
+}
+
+input {
+  font-family: 'Press Start 2P', monospace;
+  background: var(--bg-darker);
+  border: 2px solid var(--text-secondary);
+  color: var(--text-primary);
+  padding: 12px 16px;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus {
+  border-color: var(--accent-primary);
+}
+
+input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.container {
+  max-width: 800px;
+  width: 100%;
+  padding: 20px;
+}
+
+.title {
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 40px;
+  text-shadow: 0 0 10px var(--accent-primary);
+}
+
+.card {
+  background: var(--bg-darker);
+  border: 2px solid var(--text-secondary);
+  padding: 30px;
+  margin-bottom: 20px;
+}
+
+.error-message {
+  color: var(--error);
+  font-size: 10px;
+  margin-top: 10px;
+}
+
+.player-color-red { color: var(--player-red); }
+.player-color-blue { color: var(--player-blue); }
+.player-color-green { color: var(--player-green); }
+.player-color-yellow { color: var(--player-yellow); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.pulse {
+  animation: pulse 1s infinite;
+}
