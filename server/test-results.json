@@ -1,0 +1,125 @@
+{
+  "totalGames": 10,
+  "completedGames": 9,
+  "failedGames": 0,
+  "averageDuration": 4.8,
+  "winsByPersonality": {
+    "blitz": 8,
+    "demoman": 1,
+    "rat": 0
+  },
+  "draws": 1,
+  "errors": [],
+  "games": [
+    {
+      "gameNumber": 1,
+      "duration": 11,
+      "winner": "Bot Blitz",
+      "winnerId": "bot-3-blitz",
+      "personality": "blitz",
+      "totalTicks": 63,
+      "bombsPlaced": 14,
+      "blocksDestroyed": 11,
+      "error": null
+    },
+    {
+      "gameNumber": 2,
+      "duration": 7,
+      "winner": null,
+      "winnerId": null,
+      "personality": null,
+      "totalTicks": 67,
+      "bombsPlaced": 16,
+      "blocksDestroyed": 13,
+      "error": null
+    },
+    {
+      "gameNumber": 3,
+      "duration": 4,
+      "winner": "Bot Demoman",
+      "winnerId": "bot-1-demoman",
+      "personality": "demoman",
+      "totalTicks": 63,
+      "bombsPlaced": 12,
+      "blocksDestroyed": 9,
+      "error": null
+    },
+    {
+      "gameNumber": 4,
+      "duration": 6,
+      "winner": "Bot Blitz",
+      "winnerId": "bot-0-blitz",
+      "personality": "blitz",
+      "totalTicks": 63,
+      "bombsPlaced": 14,
+      "blocksDestroyed": 9,
+      "error": null
+    },
+    {
+      "gameNumber": 5,
+      "duration": 4,
+      "winner": "Bot Blitz",
+      "winnerId": "bot-3-blitz",
+      "personality": "blitz",
+      "totalTicks": 63,
+      "bombsPlaced": 14,
+      "blocksDestroyed": 10,
+      "error": null
+    },
+    {
+      "gameNumber": 6,
+      "duration": 4,
+      "winner": "Bot Blitz",
+      "winnerId": "bot-0-blitz",
+      "personality": "blitz",
+      "totalTicks": 65,
+      "bombsPlaced": 14,
+      "blocksDestroyed": 12,
+      "error": null
+    },
+    {
+      "gameNumber": 7,
+      "duration": 3,
+      "winner": "Bot Blitz",
+      "winnerId": "bot-0-blitz",
+      "personality": "blitz",
+      "totalTicks": 66,
+      "bombsPlaced": 16,
+      "blocksDestroyed": 11,
+      "error": null
+    },
+    {
+      "gameNumber": 8,
+      "duration": 3,
+      "winner": "Bot Blitz",
+      "winnerId": "bot-0-blitz",
+      "personality": "blitz",
+      "totalTicks": 67,
+      "bombsPlaced": 14,
+      "blocksDestroyed": 10,
+      "error": null
+    },
+    {
+      "gameNumber": 9,
+      "duration": 3,
+      "winner": "Bot Blitz",
+      "winnerId": "bot-0-blitz",
+      "personality": "blitz",
+      "totalTicks": 65,
+      "bombsPlaced": 14,
+      "blocksDestroyed": 11,
+      "error": null
+    },
+    {
+      "gameNumber": 10,
+      "duration": 3,
+      "winner": "Bot Blitz",
+      "winnerId": "bot-0-blitz",
+      "personality": "blitz",
+      "totalTicks": 63,
+      "bombsPlaced": 14,
+      "blocksDestroyed": 11,
+      "error": null
+    }
+  ]
+}
