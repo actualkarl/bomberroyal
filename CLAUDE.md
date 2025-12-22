@@ -3,8 +3,8 @@
 ## Project Status
 
 **Current Phase:** Production Ready
-**Last Updated:** 2025-12-22
-**Last Session:** Added Railway deployment configuration
+**Last Updated:** 2025-12-23
+**Last Session:** Fixed bot AI, added power-up hotkeys, improved death announcements
 
 ## What Exists
 
@@ -17,13 +17,14 @@
 - [x] Chain reactions (bomb triggers bomb)
 - [x] Destructible block destruction
 - [x] 9 tiered abilities (see game-docs/ABILITIES.md)
-- [x] Roguelike power-up choice UI (pick 1 of 3)
+- [x] Roguelike power-up choice UI (pick 1 of 3) with A/W/D hotkeys
 - [x] Fog of war with line-of-sight blocking
 - [x] Starcraft-style cell memory (explored areas dimmed)
 - [x] Shrinking battle royale zone
 - [x] 3 bot personalities with A* pathfinding
 - [x] Audio event system (for future sound implementation)
 - [x] Game over screen with stats
+- [x] **Death announcements** (animated top-center notifications with killer info)
 - [x] **PixiJS sprite-based graphics**
 - [x] **Animated player sprites (idle, walk, death, win)**
 - [x] **Animated bomb fuse with warning state**
@@ -200,6 +201,12 @@ NODE_ENV=production npm start
 - **Demoman:** Bomb-focused, destroys blocks constantly, hunts players
 - **Rat:** Opportunist, collects power-ups aggressively, flees when threatened
 
+**Bot Safety System:**
+- `canSafelyPlaceBomb()` in `Pathfinding.ts` simulates bomb blast and verifies escape path exists
+- When checking escape paths, the function does NOT treat the simulated danger zone as unwalkable
+  (bot will walk through the blast zone to escape before the bomb explodes)
+- All 3 personalities use this safety check before placing bombs
+
 ### Fog of War
 - Line-of-sight raycasting (Bresenham's algorithm)
 - 5-tile default radius (upgradeable with Eagle Eye)
@@ -219,6 +226,25 @@ NODE_ENV=production npm start
 - Client sends inputs, receives fog-filtered state
 - 20 ticks/second (50ms per tick)
 - Server validates all actions (movement, bombs, abilities)
+
+### Spectator Mode
+**Status:** Fully implemented
+
+**Trigger:** Automatically activates when player dies during gameplay
+
+**Controls:**
+- **Scroll wheel:** Zoom in/out (0.3x to 1.0x range)
+- **Click + drag:** Pan around the map
+
+**Features:**
+- Fog of war is removed (full map visibility)
+- Zoom toward mouse cursor position
+- Automatically disabled when new game starts
+
+**Files:**
+- `SpectatorCamera.ts` - Camera class with zoom/pan controls
+- `PixiRenderer.ts` - `enableSpectatorMode()` / `disableSpectatorMode()` methods
+- `PixiGrid.tsx` - Triggers spectator mode on player death
 
 ---
 

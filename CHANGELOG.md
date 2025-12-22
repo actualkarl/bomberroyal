@@ -2,6 +2,37 @@
 
 All notable changes to Bomberman Battle Royale.
 
+## [0.3.1] - 2025-12-23 - Bug Fixes & QoL
+
+### Added
+
+**Power-Up Selection Hotkeys**
+- Press A to select left power-up option
+- Press W to select middle power-up option
+- Press D to select right power-up option
+- Hotkey badges displayed on each power-up button
+- Updated modal text to show "(or press A / W / D)"
+
+**Death Announcements**
+- Prominent death announcements now appear at top-center of screen
+- Shows "PlayerX was blown up by PlayerY" or "PlayerX died" (shrink zone, etc.)
+- Animated slide-in effect with fade-out after 3 seconds
+- Red background with glow effect for high visibility
+
+### Fixed
+
+**Bot AI Not Taking Actions**
+- Fixed critical bug where bots would stand still and die instead of playing
+- Root cause: `canSafelyPlaceBomb()` was incorrectly treating escape paths through danger zones as invalid
+- The function simulated bomb placement but then tried to pathfind while avoiding the simulated danger tiles
+- This made it impossible for bots to find valid escape routes since they couldn't path through their own bomb's blast radius
+- Fix: Allow pathfinding through danger zones when checking escape routes (bot will move before bomb explodes)
+
+**Bot Power-Up Stats**
+- Fixed double-counting of `powerUpsCollected` stat for bots
+
+---
+
 ## [0.3.0] - 2025-12-22 - Production Ready
 
 ### Added

@@ -2,6 +2,7 @@ import { UseSocketReturn } from '../hooks/useSocket';
 import { useInput } from '../hooks/useInput';
 import PixiGrid from './PixiGrid';
 import PowerUpModal from './PowerUpModal';
+import DeathAnnouncement from './DeathAnnouncement';
 
 interface GameProps {
   socketState: UseSocketReturn;
@@ -9,7 +10,7 @@ interface GameProps {
 }
 
 function Game({ socketState, winnerId = null }: GameProps) {
-  const { room, playerId, gameState, powerUpChoice, move, placeBomb, stopAction, remoteDetonate, choosePowerUp } = socketState;
+  const { room, playerId, gameState, powerUpChoice, deathAnnouncements, move, placeBomb, stopAction, remoteDetonate, choosePowerUp } = socketState;
 
   // Handle keyboard input (disabled when power-up modal is open)
   const { currentDirection, isMoving } = useInput({
@@ -207,6 +208,9 @@ function Game({ socketState, winnerId = null }: GameProps) {
       {powerUpChoice && (
         <PowerUpModal powerUpChoice={powerUpChoice} onChoose={choosePowerUp} />
       )}
+
+      {/* Death Announcements */}
+      <DeathAnnouncement announcements={deathAnnouncements} />
     </div>
   );
 }

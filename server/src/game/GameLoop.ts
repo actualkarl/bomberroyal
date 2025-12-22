@@ -271,10 +271,10 @@ function tick(room: Room, loopState: GameLoopState, io: TypedServer): void {
       if (powerUp.choices.length > 0) {
         // Bots automatically choose a power-up based on personality preference
         if (isBot(player.id)) {
-          // Bot chooses first available choice (could be smarter based on personality)
+          // Bot chooses based on personality preference
           const choice = chooseBotPowerUp(player.id, powerUp.choices);
           applyPowerUp(player, choice);
-          player.stats.powerUpsCollected++;
+          // Note: applyPowerUp already increments powerUpsCollected
         } else {
           // Human players get the choice UI
           pendingPowerUpChoices.set(powerUp.id, { powerUpId: powerUp.id, playerId: player.id });

@@ -201,7 +201,10 @@ export function canSafelyPlaceBomb(
   if (!safeTile) return false;
 
   // Check if we can actually path to the safe tile
-  const path = findPath(pos, safeTile, gameView, simulatedDanger);
+  // IMPORTANT: Don't pass simulatedDanger to findPath - we need to walk THROUGH
+  // the danger zone to escape. We just need to verify the safe tile is reachable
+  // via walkable terrain (we'll move away before the bomb explodes).
+  const path = findPath(pos, safeTile, gameView, undefined, true);
   return path.length > 1;
 }
 

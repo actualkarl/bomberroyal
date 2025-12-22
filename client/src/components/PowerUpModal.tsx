@@ -1,3 +1,4 @@
+import { useEffect, useCallback } from 'react';
 import { PowerUpType } from '@bomberroyal/shared';
 import { PowerUpChoice } from '../hooks/useSocket';
 
@@ -5,6 +6,13 @@ interface PowerUpModalProps {
   powerUpChoice: PowerUpChoice;
   onChoose: (powerUpId: string, choice: PowerUpType) => void;
 }
+
+// Hotkey mapping: A = left (index 0), W = middle (index 1), D = right (index 2)
+const HOTKEY_MAP: Record<string, number> = {
+  'a': 0,
+  'w': 1,
+  'd': 2,
+};
 
 const powerUpInfo: Record<PowerUpType, { name: string; description: string; color: string }> = {
   bomb_count: { name: 'Extra Bomb', description: '+1 Max Bomb', color: '#ff4757' },
@@ -19,8 +27,31 @@ const powerUpInfo: Record<PowerUpType, { name: string; description: string; colo
 };
 
 function PowerUpModal({ powerUpChoice, onChoose }: PowerUpModalProps) {
+  const choices = powerUpChoice.choices || [];
+
+  // Handle keyboard shortcuts for power-up selection
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      const index = HOTKEY_MAP[key];
+
+      if (index !== undefined && index < choices.length) {
+        e.preventDefault();
+        onChoose(powerUpChoice.powerUpId, choices[index]);
+      }
+    },
+    [choices, onChoose, powerUpChoice.powerUpId]
+  );
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
   // If no choices, don't render modal
-  if (!powerUpChoice.choices || powerUpChoice.choices.length === 0) {
+  if (choices.length === 0) {
     return null;
   }
 
@@ -67,7 +98,7 @@ function PowerUpModal({ powerUpChoice, onChoose }: PowerUpModalProps) {
             marginBottom: '20px',
           }}
         >
-          Choose one upgrade
+          Choose one upgrade (or press A / W / D)
         </p>
 
         <div
@@ -78,13 +109,16 @@ function PowerUpModal({ powerUpChoice, onChoose }: PowerUpModalProps) {
             justifyContent: 'center',
           }}
         >
-          {powerUpChoice.choices.map((choice) => {
+          {choices.map((choice, index) => {
             const info = powerUpInfo[choice];
             // Skip if choice is not in powerUpInfo (shouldn't happen but safety check)
             if (!info) {
               console.warn('Unknown power-up choice:', choice);
               return null;
             }
+            // Hotkey labels: A, W, D for indices 0, 1, 2
+            const hotkeyLabels = ['A', 'W', 'D'];
+            const hotkey = hotkeyLabels[index];
             return (
               <button
                 key={choice}
@@ -98,6 +132,7 @@ function PowerUpModal({ powerUpChoice, onChoose }: PowerUpModalProps) {
                   borderRadius: '8px',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
+                  position: 'relative',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = `${info.color}33`;
@@ -108,12 +143,32 @@ function PowerUpModal({ powerUpChoice, onChoose }: PowerUpModalProps) {
                   e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
+                {/* Hotkey indicator */}
+                {hotkey && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '-8px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: info.color,
+                      color: '#1a1a2e',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    {hotkey}
+                  </div>
+                )}
                 <div
                   style={{
                     fontSize: '12px',
                     fontWeight: 'bold',
                     color: info.color,
                     marginBottom: '8px',
+                    marginTop: '4px',
                   }}
                 >
                   {info.name}

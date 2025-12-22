@@ -2,6 +2,19 @@
 
 Bomberman Battle Royale features 9 unique abilities that can be upgraded through power-ups. When you collect a power-up, you choose 1 of 3 random ability upgrades.
 
+## Power-Up Selection Controls
+
+When you collect a power-up, a modal appears with 3 choices. You can select using:
+
+| Input | Action |
+|-------|--------|
+| **Click** | Click any power-up button to select |
+| **A key** | Select the left option |
+| **W key** | Select the middle option |
+| **D key** | Select the right option |
+
+---
+
 ## Ability System Overview
 
 - **Starting Level:** All abilities start at Level 0 (inactive)

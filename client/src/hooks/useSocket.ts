@@ -16,6 +16,14 @@ export interface PowerUpChoice {
   choices: PowerUpType[];
 }
 
+export interface DeathAnnouncement {
+  victimId: string;
+  victimName: string;
+  killerId: string | null;
+  killerName: string | null;
+  timestamp: number;
+}
+
 export interface UseSocketReturn {
   socket: TypedSocket | null;
   isConnected: boolean;
@@ -23,6 +31,7 @@ export interface UseSocketReturn {
   playerId: string | null;
   gameState: VisibleGameState | null;
   powerUpChoice: PowerUpChoice | null;
+  deathAnnouncements: DeathAnnouncement[];
   finalStats: Record<string, PlayerStats> | null;
   error: string | null;
   joinRoom: (code: string, displayName: string) => void;
@@ -57,6 +66,7 @@ export function useSocket(): UseSocketReturn {
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [gameState, setGameState] = useState<VisibleGameState | null>(null);
   const [powerUpChoice, setPowerUpChoice] = useState<PowerUpChoice | null>(null);
+  const [deathAnnouncements, setDeathAnnouncements] = useState<DeathAnnouncement[]>([]);
   const [finalStats, setFinalStats] = useState<Record<string, PlayerStats> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -178,6 +188,37 @@ export function useSocket(): UseSocketReturn {
       setPowerUpChoice({ powerUpId, choices });
     });
 
+    socket.on('player-died', ({ playerId: victimId, killerId }) => {
+      setRoom((prevRoom) => {
+        if (!prevRoom) return null;
+
+        // Find player names from room
+        const victim = prevRoom.players.find(p => p.id === victimId);
+        const killer = killerId ? prevRoom.players.find(p => p.id === killerId) : null;
+
+        if (victim) {
+          const announcement: DeathAnnouncement = {
+            victimId,
+            victimName: victim.displayName,
+            killerId,
+            killerName: killer?.displayName || null,
+            timestamp: Date.now(),
+          };
+
+          setDeathAnnouncements((prev) => [...prev, announcement]);
+
+          // Auto-remove announcement after 3 seconds
+          setTimeout(() => {
+            setDeathAnnouncements((prev) =>
+              prev.filter((a) => a.timestamp !== announcement.timestamp)
+            );
+          }, 3000);
+        }
+
+        return prevRoom;
+      });
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -247,6 +288,7 @@ export function useSocket(): UseSocketReturn {
     playerId,
     gameState,
     powerUpChoice,
+    deathAnnouncements,
     finalStats,
     error,
     joinRoom,
