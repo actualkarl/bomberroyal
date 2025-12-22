@@ -31,7 +31,7 @@ function App() {
 
   // Game in progress
   if (room.gameState.phase === 'PLAYING') {
-    return <Game socketState={socketState} />;
+    return <Game socketState={socketState} winnerId={room.gameState.winner} />;
   }
 
   // Game over

@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 
 type Direction = 'up' | 'down' | 'left' | 'right';
 
@@ -10,7 +10,15 @@ interface UseInputProps {
   enabled: boolean;
 }
 
-export function useInput({ onMove, onPlaceBomb, onStopAction, onRemoteDetonate, enabled }: UseInputProps): void {
+interface UseInputReturn {
+  currentDirection: Direction | null;
+  isMoving: boolean;
+}
+
+export function useInput({ onMove, onPlaceBomb, onStopAction, onRemoteDetonate, enabled }: UseInputProps): UseInputReturn {
+  const [currentDirection, setCurrentDirection] = useState<Direction | null>(null);
+  const [isMoving, setIsMoving] = useState(false);
+  const moveTimeoutRef = useRef<number | null>(null);
   const lastMoveTime = useRef(0);
   const lastBombTime = useRef(0);
   const lastStopTime = useRef(0);
@@ -82,7 +90,19 @@ export function useInput({ onMove, onPlaceBomb, onStopAction, onRemoteDetonate, 
       if (direction) {
         e.preventDefault();
         lastMoveTime.current = now;
+        setCurrentDirection(direction);
+        setIsMoving(true);
         onMove(direction);
+
+        // Clear previous timeout
+        if (moveTimeoutRef.current) {
+          window.clearTimeout(moveTimeoutRef.current);
+        }
+
+        // Set timeout to stop walking animation after no input
+        moveTimeoutRef.current = window.setTimeout(() => {
+          setIsMoving(false);
+        }, 150);
       }
     },
     [onMove, onPlaceBomb, onStopAction, onRemoteDetonate, enabled]
@@ -92,6 +112,11 @@ export function useInput({ onMove, onPlaceBomb, onStopAction, onRemoteDetonate, 
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      if (moveTimeoutRef.current) {
+        window.clearTimeout(moveTimeoutRef.current);
+      }
     };
   }, [handleKeyDown]);
+
+  return { currentDirection, isMoving };
 }

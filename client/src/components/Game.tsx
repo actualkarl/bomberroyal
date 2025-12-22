@@ -1,17 +1,18 @@
 import { UseSocketReturn } from '../hooks/useSocket';
 import { useInput } from '../hooks/useInput';
-import Grid from './Grid';
+import PixiGrid from './PixiGrid';
 import PowerUpModal from './PowerUpModal';
 
 interface GameProps {
   socketState: UseSocketReturn;
+  winnerId?: string | null;
 }
 
-function Game({ socketState }: GameProps) {
+function Game({ socketState, winnerId = null }: GameProps) {
   const { room, playerId, gameState, powerUpChoice, move, placeBomb, stopAction, remoteDetonate, choosePowerUp } = socketState;
 
   // Handle keyboard input (disabled when power-up modal is open)
-  useInput({
+  const { currentDirection, isMoving } = useInput({
     onMove: move,
     onPlaceBomb: placeBomb,
     onStopAction: stopAction,
@@ -110,7 +111,7 @@ function Game({ socketState }: GameProps) {
       </div>
 
       {/* Game Grid */}
-      <Grid
+      <PixiGrid
         visibleCells={gameState.visibleCells}
         exploredCells={gameState.exploredCells || []}
         players={gameState.visiblePlayers}
@@ -120,6 +121,11 @@ function Game({ socketState }: GameProps) {
         powerUps={gameState.visiblePowerUps}
         gridWidth={room.settings.gridSize.width}
         gridHeight={room.settings.gridSize.height}
+        currentDirection={currentDirection}
+        isMoving={isMoving}
+        gamePhase={gameState.phase}
+        winnerId={winnerId}
+        shrinkZone={gameState.shrinkZone}
       />
 
       {/* Controls hint */}
