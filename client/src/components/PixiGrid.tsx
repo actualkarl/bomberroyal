@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Application } from 'pixi.js';
 import { Cell, Player, VisibleBomb, Explosion, PowerUpDrop, ShrinkZone } from '@bomberroyal/shared';
-import { LoadedAssets, PixiRenderer, TILE_SIZE } from '../rendering';
+import { LoadedAssets, PixiRenderer, TILE_SIZE, loadPlayerSpriteSheet } from '../rendering';
 import { useAssetPreload } from '../hooks/useAssetPreload';
 
 interface PixiGridProps {
@@ -86,6 +86,17 @@ function PixiGrid({
         const renderer = new PixiRenderer(app, assets);
         renderer.setGridSize(gridWidth, gridHeight);
         rendererRef.current = renderer;
+
+        // Load Ryu player sprite sheet
+        try {
+          const playerFrames = await loadPlayerSpriteSheet();
+          if (mounted) {
+            renderer.setPlayerSpriteFrames(playerFrames);
+          }
+        } catch (err) {
+          console.warn('Failed to load Ryu sprite sheet, using fallback:', err);
+          // Continue without Ryu sprites - will use legacy miner sprites
+        }
 
         setPixiReady(true);
       } catch (err) {

@@ -17,6 +17,12 @@ import {
 import { LoadedAssets, SPRITE_SIZE } from './AssetLoader';
 import { ScreenShake } from './effects/ScreenShake';
 import { SpectatorCamera } from './SpectatorCamera';
+import {
+  PlayerSpriteFrames,
+  PLAYER_ANIMATIONS,
+  BASELINE_OFFSETS,
+  getAnimationSpeed,
+} from './PlayerSpriteSheet';
 
 // Game tile size (sprites scaled 2x)
 export const TILE_SIZE = 64;
@@ -42,7 +48,7 @@ const POWERUP_COLORS: Record<AbilityId, number> = {
   quick_fuse: 0xE91E63,
 };
 
-// Animation speeds
+// Animation speeds (legacy - kept for bombs/explosions)
 const ANIM_SPEEDS = {
   idle: 0.08,
   walk: 0.15,
@@ -53,7 +59,19 @@ const ANIM_SPEEDS = {
   explosion: 0.2,
 };
 
+// Ryu sprite animation speeds (from PlayerSpriteSheet FPS values)
+const RYU_ANIM_SPEEDS = {
+  idle: getAnimationSpeed(PLAYER_ANIMATIONS.idle.fps),
+  walk: getAnimationSpeed(PLAYER_ANIMATIONS.walk.fps),
+  action: getAnimationSpeed(PLAYER_ANIMATIONS.action.fps),
+};
+
+// Ryu sprite frame dimensions (for scaling)
+const RYU_FRAME_HEIGHT = 341;
+
 type Direction = 'up' | 'down' | 'left' | 'right';
+
+type PlayerAnimationType = 'idle' | 'walk' | 'action';
 
 interface PlayerSpriteData {
   container: Container;
@@ -63,6 +81,8 @@ interface PlayerSpriteData {
   isWalking: boolean;
   isDead: boolean;
   isWinner: boolean;
+  currentAnim: PlayerAnimationType;
+  playerFrames: PlayerSpriteFrames | null;
 }
 
 interface BombSpriteData {
@@ -75,6 +95,7 @@ export class PixiRenderer {
   private assets: LoadedAssets;
   private screenShake: ScreenShake;
   private spectatorCamera: SpectatorCamera;
+  private playerSpriteFrames: PlayerSpriteFrames | null = null;
 
   // Layers (z-ordered)
   private layers: {
@@ -144,6 +165,11 @@ export class PixiRenderer {
   setGridSize(width: number, height: number): void {
     this.gridWidth = width;
     this.gridHeight = height;
+  }
+
+  // Set player sprite frames (Ryu sprite sheet)
+  setPlayerSpriteFrames(frames: PlayerSpriteFrames): void {
+    this.playerSpriteFrames = frames;
   }
 
   // Initialize the ground layer (called once when game starts)
@@ -232,12 +258,36 @@ export class PixiRenderer {
       let data = this.playerSprites.get(player.id);
 
       if (!data) {
-        // Create new player sprite
+        // Create new player sprite using Ryu sprite sheet if available
         const container = new Container();
-        const sprite = new AnimatedSprite(this.assets.character.idleFront);
-        sprite.anchor.set(0.5, 0.5);
-        sprite.scale.set(TILE_SIZE / SPRITE_SIZE);
-        sprite.animationSpeed = ANIM_SPEEDS.idle;
+        let sprite: AnimatedSprite;
+        let playerFrames: PlayerSpriteFrames | null = null;
+
+        if (this.playerSpriteFrames) {
+          // Use Ryu sprite sheet
+          playerFrames = this.playerSpriteFrames;
+          sprite = new AnimatedSprite(playerFrames.idle);
+          // Bottom-center anchor for proper baseline alignment
+          sprite.anchor.set(0.5, 1.0);
+          // Scale to fit within tile while maintaining proportions
+          // Ryu frames are 256x341, scale to fit roughly 64px tile height
+          const scale = (TILE_SIZE * 1.2) / RYU_FRAME_HEIGHT;
+          sprite.scale.set(scale);
+          sprite.animationSpeed = RYU_ANIM_SPEEDS.idle;
+
+          // Apply baseline offset correction on frame change
+          sprite.onFrameChange = (frameIndex: number) => {
+            const offset = BASELINE_OFFSETS[frameIndex] || 0;
+            sprite.y = offset;
+          };
+        } else {
+          // Fallback to legacy miner sprites
+          sprite = new AnimatedSprite(this.assets.character.idleFront);
+          sprite.anchor.set(0.5, 0.5);
+          sprite.scale.set(TILE_SIZE / SPRITE_SIZE);
+          sprite.animationSpeed = ANIM_SPEEDS.idle;
+        }
+
         sprite.play();
 
         // Apply player color tint
@@ -259,20 +309,34 @@ export class PixiRenderer {
           isWalking: false,
           isDead: false,
           isWinner: false,
+          currentAnim: 'idle',
+          playerFrames,
         };
         this.playerSprites.set(player.id, data);
       }
 
-      // Update position
+      // Update position - adjust Y for bottom-center anchor if using Ryu sprites
       data.container.x = player.position.x * TILE_SIZE + TILE_SIZE / 2;
-      data.container.y = player.position.y * TILE_SIZE + TILE_SIZE / 2;
+      if (data.playerFrames) {
+        // Bottom-center anchor: position at bottom of tile
+        data.container.y = player.position.y * TILE_SIZE + TILE_SIZE;
+      } else {
+        // Center anchor (legacy)
+        data.container.y = player.position.y * TILE_SIZE + TILE_SIZE / 2;
+      }
 
       // Update alive/dead state
       if (!player.alive && !data.isDead) {
-        // Start death animation
+        // Start death animation (action animation for Ryu, or legacy death)
         data.isDead = true;
-        data.sprite.textures = this.assets.character.deathFront;
-        data.sprite.animationSpeed = ANIM_SPEEDS.death;
+        if (data.playerFrames) {
+          data.sprite.textures = data.playerFrames.action;
+          data.sprite.animationSpeed = RYU_ANIM_SPEEDS.action;
+          data.currentAnim = 'action';
+        } else {
+          data.sprite.textures = this.assets.character.deathFront;
+          data.sprite.animationSpeed = ANIM_SPEEDS.death;
+        }
         data.sprite.loop = false;
         data.sprite.gotoAndPlay(0);
       }
@@ -325,7 +389,26 @@ export class PixiRenderer {
 
     data.isWalking = isWalking;
 
-    // Select appropriate animation
+    // Handle Ryu sprite animations (no directional variants)
+    if (data.playerFrames) {
+      const newAnim: PlayerAnimationType = isWalking ? 'walk' : 'idle';
+      if (data.currentAnim !== newAnim) {
+        data.currentAnim = newAnim;
+        data.sprite.textures = data.playerFrames[newAnim];
+        data.sprite.animationSpeed = RYU_ANIM_SPEEDS[newAnim];
+        data.sprite.play();
+      }
+
+      // Flip sprite for left/right direction
+      if (dir === 'left') {
+        data.sprite.scale.x = -Math.abs(data.sprite.scale.x);
+      } else if (dir === 'right') {
+        data.sprite.scale.x = Math.abs(data.sprite.scale.x);
+      }
+      return;
+    }
+
+    // Legacy miner sprite animations with directional variants
     let textures: Texture[];
     if (isWalking) {
       switch (dir) {
@@ -374,8 +457,15 @@ export class PixiRenderer {
     if (!data || data.isWinner) return;
 
     data.isWinner = true;
-    data.sprite.textures = this.assets.character.winFront;
-    data.sprite.animationSpeed = ANIM_SPEEDS.win;
+    if (data.playerFrames) {
+      // Use action animation for Ryu win celebration
+      data.sprite.textures = data.playerFrames.action;
+      data.sprite.animationSpeed = RYU_ANIM_SPEEDS.action;
+      data.currentAnim = 'action';
+    } else {
+      data.sprite.textures = this.assets.character.winFront;
+      data.sprite.animationSpeed = ANIM_SPEEDS.win;
+    }
     data.sprite.loop = true;
     data.sprite.play();
   }

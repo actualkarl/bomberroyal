@@ -2,6 +2,33 @@
 
 All notable changes to Bomberman Battle Royale.
 
+## [0.4.0] - 2025-12-23 - Ryu SF2 Character Sprites
+
+### Added
+
+**Ryu SF2 Character Sprites**
+- Replaced miner sprites with Ryu from Street Fighter 2
+- New sprite sheet system: `client/src/rendering/PlayerSpriteSheet.ts`
+- 1024x1024 sprite sheet with 4x3 grid layout (256x341 cells)
+- Three animation states:
+  - Idle: frames 0-3 at 6fps
+  - Walk: frames 4-7 at 8fps
+  - Action: frames 8-11 at 10fps (used for death/win)
+- Bottom-center anchor (0.5, 1.0) for proper baseline alignment
+- Per-frame baseline offset system for jitter correction
+- Horizontal sprite flipping for left/right movement
+- NEAREST scale mode for pixel-perfect rendering
+- Graceful fallback to legacy miner sprites if Ryu sheet fails to load
+
+### Technical
+
+- `PlayerSpriteSheet.ts`: Loads and slices sprite sheet into frame textures
+- `PixiRenderer.ts`: Updated player creation and animation to use new system
+- Maintains backwards compatibility with spectator mode
+- Player color tinting still applies to differentiate players
+
+---
+
 ## [0.3.1] - 2025-12-23 - Bug Fixes & QoL
 
 ### Added

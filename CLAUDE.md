@@ -4,7 +4,7 @@
 
 **Current Phase:** Production Ready
 **Last Updated:** 2025-12-23
-**Last Session:** Fixed bot AI, added power-up hotkeys, improved death announcements
+**Last Session:** Replaced miner sprites with Ryu SF2 character sprites
 
 ## What Exists
 
@@ -26,7 +26,7 @@
 - [x] Game over screen with stats
 - [x] **Death announcements** (animated top-center notifications with killer info)
 - [x] **PixiJS sprite-based graphics**
-- [x] **Animated player sprites (idle, walk, death, win)**
+- [x] **Ryu SF2 character sprites (idle, walk, action animations)**
 - [x] **Animated bomb fuse with warning state**
 - [x] **Animated explosion effects**
 - [x] **Screen shake on explosions**
@@ -164,7 +164,8 @@ NODE_ENV=production npm start
 ### Client - Rendering Module
 | Purpose | Location |
 |---------|----------|
-| Sprite sheet loading | `client/src/rendering/AssetLoader.ts` |
+| Terrain/item sprite loading | `client/src/rendering/AssetLoader.ts` |
+| **Ryu sprite sheet loading** | `client/src/rendering/PlayerSpriteSheet.ts` |
 | Main renderer orchestration | `client/src/rendering/PixiRenderer.ts` |
 | Spectator camera controls | `client/src/rendering/SpectatorCamera.ts` |
 | Screen shake effect | `client/src/rendering/effects/ScreenShake.ts` |
@@ -343,12 +344,24 @@ npm run stress-test:overnight
 - Shared: TypeScript types only
 
 ### Rendering
-- **PixiJS WebGL renderer** with 64x64 tile size (sprites scaled 2x from 32x32)
+- **PixiJS WebGL renderer** with 64x64 tile size
 - **Layered rendering:** ground → items → blocks → bombs → players → explosions → shrink → fog
-- **Assets:** Minerman Adventure sprite pack in `client/public/assets/`
-- **Animation speeds:** idle (0.08), walk (0.15), death (0.12), bomb (0.1/0.3), explosion (0.2)
+- **Terrain assets:** Minerman Adventure sprite pack in `client/public/assets/`
+- **Player sprites:** Ryu SF2 character in `client/public/assets/sf2/characters/ryu/`
 - **Terrain textures:** grass.png (floor), wall.png (indestructible), wood.png (destructible)
 - **Fog rendering:** Smooth gradient using distance-from-visible calculation with smoothstep
+
+### Player Sprite System (Ryu SF2)
+- **Sprite sheet:** `ryu_sheet_1024.png` (1024x1024, 4x3 grid, 256x341 cells)
+- **Animations:**
+  - idle: frames [0,1,2,3] at 6fps
+  - walk: frames [4,5,6,7] at 8fps
+  - action: frames [8,9,10,11] at 10fps (used for death/win)
+- **Anchor:** Bottom-center (0.5, 1.0) for baseline alignment
+- **Scale mode:** NEAREST for pixel-perfect rendering
+- **Baseline offsets:** Per-frame Y adjustments to prevent animation jitter
+- **Direction:** Sprite flips horizontally for left/right movement
+- **Fallback:** Legacy miner sprites if Ryu sheet fails to load
 
 ### Room Codes
 - 6 alphanumeric characters (excludes confusing chars like 0/O, 1/I/L)
