@@ -23,6 +23,11 @@ import {
   BASELINE_OFFSETS,
   getAnimationSpeed,
 } from './PlayerSpriteSheet';
+import {
+  BombSpriteFrames,
+  BOMB_ANIMATIONS,
+  getBombAnimationSpeed,
+} from './BombSpriteSheet';
 
 // Game tile size (sprites scaled 2x)
 export const TILE_SIZE = 64;
@@ -66,6 +71,13 @@ const RYU_ANIM_SPEEDS = {
   action: getAnimationSpeed(PLAYER_ANIMATIONS.action.fps),
 };
 
+// Hadouken bomb animation speeds (from BombSpriteSheet FPS values)
+const HADOUKEN_ANIM_SPEEDS = {
+  idle: getBombAnimationSpeed(BOMB_ANIMATIONS.idle.fps),
+  warning: getBombAnimationSpeed(BOMB_ANIMATIONS.warning.fps),
+  critical: getBombAnimationSpeed(BOMB_ANIMATIONS.critical.fps),
+};
+
 // Ryu sprite frame dimensions (for scaling)
 const RYU_FRAME_HEIGHT = 341;
 
@@ -85,9 +97,14 @@ interface PlayerSpriteData {
   playerFrames: PlayerSpriteFrames | null;
 }
 
+type BombAnimState = 'idle' | 'warning' | 'critical';
+
 interface BombSpriteData {
   sprite: AnimatedSprite;
-  isWarning: boolean;
+  currentState: BombAnimState;
+  bombFrames: BombSpriteFrames | null;
+  baseScale: number;
+  pulseOffset: number;  // Random offset for varied pulse timing
 }
 
 export class PixiRenderer {
@@ -96,6 +113,7 @@ export class PixiRenderer {
   private screenShake: ScreenShake;
   private spectatorCamera: SpectatorCamera;
   private playerSpriteFrames: PlayerSpriteFrames | null = null;
+  private bombSpriteFrames: BombSpriteFrames | null = null;
 
   // Layers (z-ordered)
   private layers: {
@@ -170,6 +188,11 @@ export class PixiRenderer {
   // Set player sprite frames (Ryu sprite sheet)
   setPlayerSpriteFrames(frames: PlayerSpriteFrames): void {
     this.playerSpriteFrames = frames;
+  }
+
+  // Set bomb sprite frames (Hadouken sprite sheet)
+  setBombSpriteFrames(frames: BombSpriteFrames): void {
+    this.bombSpriteFrames = frames;
   }
 
   // Initialize the ground layer (called once when game starts)
@@ -290,8 +313,10 @@ export class PixiRenderer {
 
         sprite.play();
 
-        // Apply player color tint
-        sprite.tint = PLAYER_COLORS[player.color] || 0xFFFFFF;
+        // Apply player color tint (only for legacy miner sprites, not Ryu)
+        if (!playerFrames) {
+          sprite.tint = PLAYER_COLORS[player.color] || 0xFFFFFF;
+        }
 
         // Shield graphics
         const shieldGraphics = new Graphics();
@@ -339,6 +364,18 @@ export class PixiRenderer {
         }
         data.sprite.loop = false;
         data.sprite.gotoAndPlay(0);
+
+        // Fade out after death animation completes
+        data.sprite.onComplete = () => {
+          // Fade out over 500ms
+          const fadeOut = () => {
+            data.sprite.alpha -= 0.05;
+            if (data.sprite.alpha > 0) {
+              requestAnimationFrame(fadeOut);
+            }
+          };
+          fadeOut();
+        };
       }
 
       // Update shield
@@ -362,9 +399,14 @@ export class PixiRenderer {
       }
     }
 
-    // Remove players that are no longer visible
+    // Remove players that are no longer visible (but keep dead players for animation)
     for (const [id, data] of this.playerSprites) {
       if (!expectedPlayers.has(id)) {
+        // If player just died, keep them visible for the death animation
+        if (data.isDead && data.sprite.playing) {
+          // Keep the dead player visible while animation plays
+          continue;
+        }
         this.layers.players.removeChild(data.container);
         data.sprite.destroy();
         data.shieldGraphics.destroy();
@@ -470,6 +512,34 @@ export class PixiRenderer {
     data.sprite.play();
   }
 
+  // Play action animation (for power-up pickup, etc.)
+  playActionAnimation(playerId: string): void {
+    const data = this.playerSprites.get(playerId);
+    if (!data || data.isDead || data.isWinner) return;
+
+    if (data.playerFrames) {
+      // Play action animation once, then return to idle/walk
+      const wasWalking = data.isWalking;
+      data.sprite.textures = data.playerFrames.action;
+      data.sprite.animationSpeed = RYU_ANIM_SPEEDS.action;
+      data.currentAnim = 'action';
+      data.sprite.loop = false;
+      data.sprite.gotoAndPlay(0);
+
+      // Return to previous animation when action completes
+      data.sprite.onComplete = () => {
+        if (data.isDead || data.isWinner) return;
+        const anim = wasWalking ? 'walk' : 'idle';
+        data.sprite.textures = data.playerFrames![anim];
+        data.sprite.animationSpeed = RYU_ANIM_SPEEDS[anim];
+        data.currentAnim = anim;
+        data.sprite.loop = true;
+        data.sprite.play();
+        data.sprite.onComplete = undefined;
+      };
+    }
+  }
+
   // Update bombs
   updateBombs(bombs: VisibleBomb[]): void {
     const expectedBombs = new Set<string>();
@@ -481,35 +551,115 @@ export class PixiRenderer {
       let data = this.bombSprites.get(bomb.id);
 
       if (!data) {
-        // Create new bomb sprite
-        const sprite = new AnimatedSprite(this.assets.items.dynamite);
-        sprite.anchor.set(0.5, 0.5);
-        sprite.scale.set(TILE_SIZE / SPRITE_SIZE * 0.8);
-        sprite.animationSpeed = ANIM_SPEEDS.bombNormal;
+        // Create new bomb sprite using Hadouken sprites if available
+        let sprite: AnimatedSprite;
+        let bombFrames: BombSpriteFrames | null = null;
+        let baseScale: number;
+
+        if (this.bombSpriteFrames) {
+          // Use Hadouken sprite sheet
+          bombFrames = this.bombSpriteFrames;
+          sprite = new AnimatedSprite(bombFrames.idle);
+          // Center anchor for proper centering on tile
+          sprite.anchor.set(0.5, 0.5);
+          // Scale hadouken to fit tile - frames are ~609px wide
+          // Scale to fit nicely within 64px tile (target ~80px for visual impact)
+          baseScale = 80 / 609;  // ~0.13
+          sprite.scale.set(baseScale);
+          sprite.animationSpeed = HADOUKEN_ANIM_SPEEDS.idle;
+        } else {
+          // Fallback to legacy dynamite sprites
+          sprite = new AnimatedSprite(this.assets.items.dynamite);
+          sprite.anchor.set(0.5, 0.5);
+          baseScale = TILE_SIZE / SPRITE_SIZE * 0.8;
+          sprite.scale.set(baseScale);
+          sprite.animationSpeed = ANIM_SPEEDS.bombNormal;
+        }
+
         sprite.play();
 
-        sprite.x = bomb.position.x * TILE_SIZE + TILE_SIZE / 2;
-        sprite.y = bomb.position.y * TILE_SIZE + TILE_SIZE / 2;
+        // Snap to integer positions for pixel-perfect rendering
+        sprite.x = Math.floor(bomb.position.x * TILE_SIZE + TILE_SIZE / 2);
+        sprite.y = Math.floor(bomb.position.y * TILE_SIZE + TILE_SIZE / 2);
 
         this.layers.bombs.addChild(sprite);
-        data = { sprite, isWarning: false };
+        // Random pulse offset so bombs don't all pulse in sync
+        const pulseOffset = Math.random() * Math.PI * 2;
+        data = { sprite, currentState: 'idle', bombFrames, baseScale, pulseOffset };
         this.bombSprites.set(bomb.id, data);
       }
 
-      // Update position (for sliding bombs)
-      data.sprite.x = bomb.position.x * TILE_SIZE + TILE_SIZE / 2;
-      data.sprite.y = bomb.position.y * TILE_SIZE + TILE_SIZE / 2;
+      // Update position (for sliding bombs) - snap to integers
+      data.sprite.x = Math.floor(bomb.position.x * TILE_SIZE + TILE_SIZE / 2);
+      data.sprite.y = Math.floor(bomb.position.y * TILE_SIZE + TILE_SIZE / 2);
 
-      // Update warning state
-      const shouldWarn = bomb.visibility === 'warning';
-      if (shouldWarn && !data.isWarning) {
-        data.isWarning = true;
-        data.sprite.animationSpeed = ANIM_SPEEDS.bombWarning;
-        data.sprite.tint = 0xFF4444;
-      } else if (!shouldWarn && data.isWarning) {
-        data.isWarning = false;
-        data.sprite.animationSpeed = ANIM_SPEEDS.bombNormal;
-        data.sprite.tint = 0xFFFFFF;
+      // Determine bomb state based on visibility and timing
+      // visibility: 'visible' = normal, 'warning' = about to explode, 'audio_only' = hidden
+      let targetState: BombAnimState = 'idle';
+      if (bomb.visibility === 'warning') {
+        // Check if very close to explosion (critical) or just warning
+        // For now, treat all warnings as warning state (middle row - yellow/fiery)
+        targetState = 'warning';
+      }
+
+      // Update animation state if changed
+      if (targetState !== data.currentState) {
+        data.currentState = targetState;
+
+        if (data.bombFrames) {
+          // Update to new hadouken animation
+          data.sprite.textures = data.bombFrames[targetState];
+          data.sprite.animationSpeed = HADOUKEN_ANIM_SPEEDS[targetState];
+          data.sprite.play();
+        } else {
+          // Legacy bomb state update
+          if (targetState === 'warning') {
+            data.sprite.animationSpeed = ANIM_SPEEDS.bombWarning;
+            data.sprite.tint = 0xFF4444;
+          } else {
+            data.sprite.animationSpeed = ANIM_SPEEDS.bombNormal;
+            data.sprite.tint = 0xFFFFFF;
+          }
+        }
+      }
+
+      // Apply dynamic effects for hadouken bombs
+      if (data.bombFrames) {
+        const time = Date.now() / 1000;
+        const isWarning = data.currentState === 'warning';
+
+        // Pulse effect - faster and more intense when warning
+        const pulseSpeed = isWarning ? 10 : 4;
+        const pulseAmount = isWarning ? 0.2 : 0.1;
+        const pulse = 1 + Math.sin((time * pulseSpeed) + data.pulseOffset) * pulseAmount;
+        data.sprite.scale.set(data.baseScale * pulse);
+
+        // Glow effect via alpha pulsing (brighter = more glow appearance)
+        // Combined with slight tint brightness adjustment
+        const glowSpeed = isWarning ? 12 : 5;
+        const glowPhase = Math.sin((time * glowSpeed) + data.pulseOffset);
+
+        if (isWarning) {
+          // Warning: intense flickering glow
+          const alpha = 0.8 + glowPhase * 0.2;
+          data.sprite.alpha = alpha;
+          // Tint shifts between orange and bright yellow
+          const tintIntensity = (glowPhase + 1) / 2; // 0 to 1
+          const r = 255;
+          const g = Math.floor(180 + tintIntensity * 75); // 180-255
+          const b = Math.floor(50 + tintIntensity * 50);  // 50-100
+          data.sprite.tint = (r << 16) | (g << 8) | b;
+        } else {
+          // Idle: gentle glow pulse
+          const alpha = 0.85 + glowPhase * 0.15;
+          data.sprite.alpha = alpha;
+          // Tint shifts between blue and cyan
+          const tintIntensity = (glowPhase + 1) / 2; // 0 to 1
+          const r = Math.floor(100 + tintIntensity * 50);  // 100-150
+          const g = Math.floor(180 + tintIntensity * 75);  // 180-255
+          const b = 255;
+          data.sprite.tint = (r << 16) | (g << 8) | b;
+        }
       }
     }
 

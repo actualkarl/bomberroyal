@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Application } from 'pixi.js';
 import { Cell, Player, VisibleBomb, Explosion, PowerUpDrop, ShrinkZone } from '@bomberroyal/shared';
-import { LoadedAssets, PixiRenderer, TILE_SIZE, loadPlayerSpriteSheet } from '../rendering';
+import { LoadedAssets, PixiRenderer, TILE_SIZE, loadPlayerSpriteSheet, loadBombSpriteSheet } from '../rendering';
 import { useAssetPreload } from '../hooks/useAssetPreload';
 
 interface PixiGridProps {
@@ -19,6 +19,7 @@ interface PixiGridProps {
   gamePhase: string;
   winnerId: string | null;
   shrinkZone: ShrinkZone;
+  triggerActionAnimation?: boolean;
 }
 
 function PixiGrid({
@@ -36,6 +37,7 @@ function PixiGrid({
   gamePhase,
   winnerId,
   shrinkZone,
+  triggerActionAnimation,
 }: PixiGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<Application | null>(null);
@@ -96,6 +98,17 @@ function PixiGrid({
         } catch (err) {
           console.warn('Failed to load Ryu sprite sheet, using fallback:', err);
           // Continue without Ryu sprites - will use legacy miner sprites
+        }
+
+        // Load Hadouken bomb sprite sheet
+        try {
+          const bombFrames = await loadBombSpriteSheet();
+          if (mounted && bombFrames) {
+            renderer.setBombSpriteFrames(bombFrames);
+          }
+        } catch (err) {
+          console.warn('Failed to load Hadouken bomb sprites, using fallback:', err);
+          // Continue without Hadouken sprites - will use legacy dynamite sprites
         }
 
         setPixiReady(true);
@@ -197,6 +210,14 @@ function PixiGrid({
       renderer.showWinAnimation(winnerId);
     }
   }, [gamePhase, winnerId, loading]);
+
+  // Trigger action animation (for power-up pickup)
+  useEffect(() => {
+    const renderer = rendererRef.current;
+    if (!renderer || loading || !triggerActionAnimation) return;
+
+    renderer.playActionAnimation(self.id);
+  }, [triggerActionAnimation, self.id, loading]);
 
   const displayError = error || assetsError;
 

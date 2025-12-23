@@ -5,3 +5,5 @@ export { ScreenShake } from './effects/ScreenShake';
 export { SpectatorCamera } from './SpectatorCamera';
 export { loadPlayerSpriteSheet, PLAYER_ANIMATIONS, BASELINE_OFFSETS } from './PlayerSpriteSheet';
 export type { PlayerSpriteFrames } from './PlayerSpriteSheet';
+export { loadBombSpriteSheet, BOMB_ANIMATIONS } from './BombSpriteSheet';
+export type { BombSpriteFrames } from './BombSpriteSheet';

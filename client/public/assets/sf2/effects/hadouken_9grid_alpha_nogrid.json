@@ -1,0 +1,193 @@
+{
+  "frames": {
+    "fx_0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 609,
+        "h": 345
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 609,
+        "h": 345
+      },
+      "sourceSize": {
+        "w": 609,
+        "h": 345
+      }
+    },
+    "fx_1": {
+      "frame": {
+        "x": 615,
+        "y": 0,
+        "w": 307,
+        "h": 345
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 307,
+        "h": 345
+      },
+      "sourceSize": {
+        "w": 307,
+        "h": 345
+      }
+    },
+    "fx_2": {
+      "frame": {
+        "x": 929,
+        "y": 0,
+        "w": 607,
+        "h": 345
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 607,
+        "h": 345
+      },
+      "sourceSize": {
+        "w": 607,
+        "h": 345
+      }
+    },
+    "fx_3": {
+      "frame": {
+        "x": 0,
+        "y": 351,
+        "w": 609,
+        "h": 310
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 609,
+        "h": 310
+      },
+      "sourceSize": {
+        "w": 609,
+        "h": 310
+      }
+    },
+    "fx_4": {
+      "frame": {
+        "x": 615,
+        "y": 351,
+        "w": 307,
+        "h": 310
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 307,
+        "h": 310
+      },
+      "sourceSize": {
+        "w": 307,
+        "h": 310
+      }
+    },
+    "fx_5": {
+      "frame": {
+        "x": 929,
+        "y": 351,
+        "w": 607,
+        "h": 310
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 607,
+        "h": 310
+      },
+      "sourceSize": {
+        "w": 607,
+        "h": 310
+      }
+    },
+    "fx_6": {
+      "frame": {
+        "x": 0,
+        "y": 666,
+        "w": 609,
+        "h": 358
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 609,
+        "h": 358
+      },
+      "sourceSize": {
+        "w": 609,
+        "h": 358
+      }
+    },
+    "fx_7": {
+      "frame": {
+        "x": 615,
+        "y": 666,
+        "w": 307,
+        "h": 358
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 307,
+        "h": 358
+      },
+      "sourceSize": {
+        "w": 307,
+        "h": 358
+      }
+    },
+    "fx_8": {
+      "frame": {
+        "x": 929,
+        "y": 666,
+        "w": 607,
+        "h": 358
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 607,
+        "h": 358
+      },
+      "sourceSize": {
+        "w": 607,
+        "h": 358
+      }
+    }
+  },
+  "meta": {
+    "app": "chatgpt",
+    "image": "hadouken_9grid_alpha_nogrid.png",
+    "size": {
+      "w": 1536,
+      "h": 1024
+    },
+    "scale": "1"
+  }
+}

@@ -4,7 +4,7 @@
 
 **Current Phase:** Production Ready
 **Last Updated:** 2025-12-23
-**Last Session:** Replaced miner sprites with Ryu SF2 character sprites
+**Last Session:** Added Hadouken bomb sprites (SF2 style energy ball effects)
 
 ## What Exists
 
@@ -27,6 +27,7 @@
 - [x] **Death announcements** (animated top-center notifications with killer info)
 - [x] **PixiJS sprite-based graphics**
 - [x] **Ryu SF2 character sprites (idle, walk, action animations)**
+- [x] **Hadouken bomb sprites (SF2 style energy ball with warning states)**
 - [x] **Animated bomb fuse with warning state**
 - [x] **Animated explosion effects**
 - [x] **Screen shake on explosions**
@@ -166,6 +167,7 @@ NODE_ENV=production npm start
 |---------|----------|
 | Terrain/item sprite loading | `client/src/rendering/AssetLoader.ts` |
 | **Ryu sprite sheet loading** | `client/src/rendering/PlayerSpriteSheet.ts` |
+| **Hadouken bomb sprite loading** | `client/src/rendering/BombSpriteSheet.ts` |
 | Main renderer orchestration | `client/src/rendering/PixiRenderer.ts` |
 | Spectator camera controls | `client/src/rendering/SpectatorCamera.ts` |
 | Screen shake effect | `client/src/rendering/effects/ScreenShake.ts` |
@@ -362,6 +364,16 @@ npm run stress-test:overnight
 - **Baseline offsets:** Per-frame Y adjustments to prevent animation jitter
 - **Direction:** Sprite flips horizontally for left/right movement
 - **Fallback:** Legacy miner sprites if Ryu sheet fails to load
+
+### Bomb Sprite System (Hadouken FX)
+- **Sprite sheet:** `hadouken_9grid_alpha_nogrid.png` (1536x1024, 3x3 grid)
+- **Atlas:** `hadouken_9grid_alpha_nogrid.json` with frames fx_0 through fx_8
+- **Animations:**
+  - idle: fx_0, fx_1, fx_2 (blue energy) at 4fps - normal bomb state
+  - warning: fx_3, fx_4, fx_5 (yellow/orange fiery) at 6fps - bomb about to explode
+  - critical: fx_6, fx_7, fx_8 (blue with fiery accents) at 10fps - reserved for future use
+- **Scale:** Integer-multiple scaling for pixel-perfect rendering
+- **Fallback:** Legacy dynamite sprites if Hadouken sheet fails to load
 
 ### Room Codes
 - 6 alphanumeric characters (excludes confusing chars like 0/O, 1/I/L)
