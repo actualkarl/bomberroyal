@@ -8,6 +8,7 @@ import {
   PowerUpType,
   PlayerStats,
 } from '@bomberroyal/shared';
+import { playSound } from '../audio';
 
 type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
@@ -249,6 +250,7 @@ export function useSocket(): UseSocketReturn {
 
   const placeBomb = useCallback(() => {
     socketRef.current?.emit('place-bomb');
+    playSound('hadouken');
   }, []);
 
   const stopAction = useCallback(() => {

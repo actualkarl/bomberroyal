@@ -4,7 +4,7 @@
 
 **Current Phase:** Production Ready
 **Last Updated:** 2025-12-23
-**Last Session:** Added Hadouken bomb sprites (SF2 style energy ball effects)
+**Last Session:** Added hadouken sound effect on bomb placement, fixed bomb tint cycling to use pure sprite colors
 
 ## What Exists
 
@@ -27,7 +27,7 @@
 - [x] **Death announcements** (animated top-center notifications with killer info)
 - [x] **PixiJS sprite-based graphics**
 - [x] **Ryu SF2 character sprites (idle, walk, action animations)**
-- [x] **Hadouken bomb sprites (SF2 style energy ball with warning states)**
+- [x] **Hadouken bomb sprites (SF2 style energy ball with glow effects)**
 - [x] **Animated bomb fuse with warning state**
 - [x] **Animated explosion effects**
 - [x] **Screen shake on explosions**
@@ -42,10 +42,15 @@
 - [x] **Railway deployment ready** (production configuration)
 
 ### Not Yet Implemented
+- [ ] Death animation with 'YOU DIED' overlay and fade transition
 - [ ] Sound effects and music
 - [ ] Particle effects (beyond explosions)
 - [ ] Reconnection handling
 - [ ] Mobile touch controls
+
+### Technical Debt
+- [ ] **Improve image asset pipeline** - Manual atlas JSON creation is tedious; consider using TexturePacker or automated sprite sheet tools
+- [ ] **Hadouken sprite has cyan edges** - The hadouken.png sprite has slight cyan (blue+green) edges that can appear greenish; consider editing the sprite to be pure blue or replacing with a cleaner asset
 
 ---
 
@@ -277,10 +282,11 @@ Quick steps:
 
 ## Next Planned Work
 
-1. **Sound effects** - Implement audio using the existing event system
-2. **Particle effects** - Power-up collect particles, death particles
-3. **Production deployment** - Railway or similar platform
+1. **Death animation** - 'YOU DIED' overlay with fade transition when player dies
+2. **Sound effects** - Implement audio using the existing event system
+3. **Particle effects** - Power-up collect particles, death particles
 4. **Mobile touch controls** - Virtual joystick and buttons
+5. **Asset pipeline improvement** - Automate sprite sheet atlas generation
 
 ---
 
@@ -368,11 +374,15 @@ npm run stress-test:overnight
 ### Bomb Sprite System (Hadouken FX)
 - **Sprite sheet:** `hadouken_9grid_alpha_nogrid.png` (1536x1024, 3x3 grid)
 - **Atlas:** `hadouken_9grid_alpha_nogrid.json` with frames fx_0 through fx_8
-- **Animations:**
-  - idle: fx_0, fx_1, fx_2 (blue energy) at 4fps - normal bomb state
-  - warning: fx_3, fx_4, fx_5 (yellow/orange fiery) at 6fps - bomb about to explode
-  - critical: fx_6, fx_7, fx_8 (blue with fiery accents) at 10fps - reserved for future use
-- **Scale:** Integer-multiple scaling for pixel-perfect rendering
+- **States:** Uses single frame per state to avoid jiggle from different frame sizes
+  - idle: fx_0 (blue energy) - normal bomb state
+  - warning: fx_3 (yellow/orange fiery) - bomb about to explode
+  - critical: fx_6 (blue with fiery accents) - reserved for future use
+- **Dynamic Effects:**
+  - Scale pulse: 10% amplitude (idle), 20% amplitude (warning)
+  - Alpha pulse: Creates glow effect via brightness fluctuation
+  - Tint color shifting: Blue-cyan (idle), orange-yellow (warning)
+  - Random phase offsets: Each bomb animates independently
 - **Fallback:** Legacy dynamite sprites if Hadouken sheet fails to load
 
 ### Room Codes

@@ -562,9 +562,9 @@ export class PixiRenderer {
           sprite = new AnimatedSprite(bombFrames.idle);
           // Center anchor for proper centering on tile
           sprite.anchor.set(0.5, 0.5);
-          // Scale hadouken to fit tile - frames are ~609px wide
+          // Scale hadouken to fit tile - new frames are 512x512
           // Scale to fit nicely within 64px tile (target ~80px for visual impact)
-          baseScale = 80 / 609;  // ~0.13
+          baseScale = 80 / 512;  // ~0.156
           sprite.scale.set(baseScale);
           sprite.animationSpeed = HADOUKEN_ANIM_SPEEDS.idle;
         } else {
@@ -640,7 +640,7 @@ export class PixiRenderer {
         const glowPhase = Math.sin((time * glowSpeed) + data.pulseOffset);
 
         if (isWarning) {
-          // Warning: intense flickering glow
+          // Warning: intense flickering glow - orange/yellow
           const alpha = 0.8 + glowPhase * 0.2;
           data.sprite.alpha = alpha;
           // Tint shifts between orange and bright yellow
@@ -650,15 +650,11 @@ export class PixiRenderer {
           const b = Math.floor(50 + tintIntensity * 50);  // 50-100
           data.sprite.tint = (r << 16) | (g << 8) | b;
         } else {
-          // Idle: gentle glow pulse
-          const alpha = 0.85 + glowPhase * 0.15;
+          // Idle: pure sprite colors with subtle alpha glow
+          // NO tint color cycling - just use the original blue sprite
+          const alpha = 0.85 + glowPhase * 0.15;  // 0.7-1.0 alpha pulse for glow effect
           data.sprite.alpha = alpha;
-          // Tint shifts between blue and cyan
-          const tintIntensity = (glowPhase + 1) / 2; // 0 to 1
-          const r = Math.floor(100 + tintIntensity * 50);  // 100-150
-          const g = Math.floor(180 + tintIntensity * 75);  // 180-255
-          const b = 255;
-          data.sprite.tint = (r << 16) | (g << 8) | b;
+          data.sprite.tint = 0xFFFFFF;  // White = show original sprite colors
         }
       }
     }

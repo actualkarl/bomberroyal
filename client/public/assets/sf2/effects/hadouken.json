@@ -1,0 +1,46 @@
+{
+  "frames": {
+    "hadouken_charge_0": {
+      "frame": { "x": 0, "y": 0, "w": 512, "h": 512 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 512, "h": 512 },
+      "sourceSize": { "w": 512, "h": 512 }
+    },
+    "hadouken_charge_1": {
+      "frame": { "x": 512, "y": 0, "w": 512, "h": 512 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 512, "h": 512 },
+      "sourceSize": { "w": 512, "h": 512 }
+    },
+    "hadouken_charge_2": {
+      "frame": { "x": 0, "y": 512, "w": 512, "h": 512 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 512, "h": 512 },
+      "sourceSize": { "w": 512, "h": 512 }
+    },
+    "hadouken_charge_3": {
+      "frame": { "x": 512, "y": 512, "w": 512, "h": 512 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 512, "h": 512 },
+      "sourceSize": { "w": 512, "h": 512 }
+    }
+  },
+  "animations": {
+    "hadouken_charge": [
+      "hadouken_charge_0",
+      "hadouken_charge_1",
+      "hadouken_charge_2",
+      "hadouken_charge_3"
+    ]
+  },
+  "meta": {
+    "image": "hadouken.png",
+    "format": "RGBA8888",
+    "size": { "w": 1024, "h": 1024 },
+    "scale": "1"
+  }
+}
